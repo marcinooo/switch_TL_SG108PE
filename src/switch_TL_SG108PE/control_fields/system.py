@@ -7,13 +7,19 @@ from switch_TL_SG108PE.errors import InvalidDescription, TpLinkSwitchError, DHCP
 
 
 class SystemControlField(ControlField):
+    """Creates object to control system settings on switch."""
 
     MENU_SECTION = 'System'
 
-    def system_info(self):
+    @ControlField.require_login
+    def system_info(self) -> dict[str, str]:
+        """
+        Gets switch system information.
+        :return: dict with base information about switch system
+        """
         system_info = {}
         self.open_tab(self.MENU_SECTION, 'System Info')
-        self.manager.switch_to_frame(Frame.MAIN)
+        self.web_controller.switch_to_frame(Frame.MAIN)
         system_info_artifacts_ids = {
             'Device Description': 'sp_devicetype',
             'MAC Address': 'sp_macaddress',
@@ -25,30 +31,41 @@ class SystemControlField(ControlField):
         }
         for key, value in system_info_artifacts_ids.items():
             artifact_details = (By.XPATH, f"//span[@id='{value}']")
-            self.manager.wait_until_element_is_present(*artifact_details)
-            artifact = self.manager.webdriver.find_element(*artifact_details)
+            self.web_controller.wait_until_element_is_present(*artifact_details)
+            artifact = self.web_controller.find_element(*artifact_details)
             system_info[key] = artifact.text
         return system_info
 
-    def set_device_description(self, description):
+    @ControlField.require_login
+    def set_device_description(self, description: str) -> bool:
+        """
+        Sets name of switch visible in network.
+        :param description: name of device
+        :return: True if name was successfully changed, otherwise False
+        """
         description = str(description)
         if len(description) > 32:
             raise InvalidDescription('The length of device description should not be more than 32 characters.')
         self.open_tab(self.MENU_SECTION, 'System Info')
-        self.manager.switch_to_frame(Frame.MAIN)
+        self.web_controller.switch_to_frame(Frame.MAIN)
         input_field_details = (By.XPATH, "//input[@id='tDevDscr']")
-        self.manager.wait_until_element_is_present(*input_field_details)
-        input_field = self.manager.webdriver.find_element(*input_field_details)
+        self.web_controller.wait_until_element_is_present(*input_field_details)
+        input_field = self.web_controller.find_element(*input_field_details)
         input_field.clear()
         input_field.send_keys(description)
         apply_button_details = (By.XPATH, "//input[@id='btApply']")
-        self.manager.webdriver.find_element(*apply_button_details).click()
+        self.web_controller.find_element(*apply_button_details).click()
         return self._wait_for_success_alert()
 
-    def ip_settings(self):
+    @ControlField.require_login
+    def ip_settings(self) -> dict[str, str]:
+        """
+        Gets ip settings. It shows ip assigned to switch in network.
+        :return: information about ip, mask, gateway
+        """
         ip_info = {}
         self.open_tab(self.MENU_SECTION, 'IP Setting')
-        self.manager.switch_to_frame(Frame.MAIN)
+        self.web_controller.switch_to_frame(Frame.MAIN)
         ip_settings_artifacts_ids = {
             'DHCP Setting': {'id': 'check_dhcp', 'ele_type': 'select'},
             'IP Address': {'id': 'txt_addr', 'ele_type': 'input'},
@@ -57,85 +74,149 @@ class SystemControlField(ControlField):
         }
         for key, value in ip_settings_artifacts_ids.items():
             artifact_details = (By.XPATH, f"//{value['ele_type']}[@id='{value['id']}']")
-            self.manager.wait_until_element_is_present(*artifact_details)
-            artifact = self.manager.webdriver.find_element(*artifact_details)
+            self.web_controller.wait_until_element_is_present(*artifact_details)
+            artifact = self.web_controller.find_element(*artifact_details)
             ip_info[key] = artifact.get_attribute('value')
         return ip_info
 
-    def enable_dhcp_settings(self):
-        self._select_dhcp_option_in_ip_settings('Enable')
+    @ControlField.require_login
+    def enable_dhcp_configuration(self) -> bool:
+        """
+        Enables the function of automatic ip retrieval from dhcp server in the network.
+        :return: True if settings was successfully enabled, otherwise False
+        """
+        return self._select_dhcp_option_in_ip_settings('Enable')
 
-    def disable_dhcp_settings(self):
-        self._select_dhcp_option_in_ip_settings('Disable')
+    @ControlField.require_login
+    def disable_dhcp_configuration(self) -> bool:
+        """
+        Disables the function of automatic ip retrieval from dhcp server in the network.
+        User should configure ip manually.
+        :return: True if settings was successfully disabled, otherwise False
+        """
+        return self._select_dhcp_option_in_ip_settings('Disable')
 
-    def set_ip(self, ip_address, subnet_mask, default_gateway):
+    @ControlField.require_login
+    def set_ip(self, ip_address: str, subnet_mask: str, default_gateway: str) -> bool:
+        """
+        Sets switch ip, netmask, gateway. It works only if dhcp configuration is disabled.
+        :param ip_address: switch ip
+        :param subnet_mask: mask dedicated for ip
+        :param default_gateway: gateway for switch network
+        :return: True if ip details was configured successfully, otherwise False
+        """
         # TODO: Add ips validation
         ip_settings = self.ip_settings()
         if ip_settings['DHCP Setting'] != 'disable':
             raise DHCPSettingsEnabledError('DHCP settings are enabled. '
                                            'Disable it to set own ip. Use "disable_dhcp_settings()" method.')
-        self._enter_text_value_in_ip_settings(ip_address, 'txt_addr')
-        self._enter_text_value_in_ip_settings(subnet_mask, 'txt_mask')
-        self._enter_text_value_in_ip_settings(default_gateway, 'txt_gateway')
+        self._enter_text_value_in_input_filed(ip_address, 'txt_addr')
+        self._enter_text_value_in_input_filed(subnet_mask, 'txt_mask')
+        self._enter_text_value_in_input_filed(default_gateway, 'txt_gateway')
         self._apply_ip_settings()
         return self._wait_for_success_alert()
 
-    def led_on(self):
+    @ControlField.require_login
+    def led_on(self) -> bool:
+        """
+        Turns on led in front site switch panel.
+        :return: True if led was turned on, otherwise False
+        """
         return self._select_led_radio_in_led_settings('on')
 
-    def led_off(self):
+    @ControlField.require_login
+    def led_off(self) -> bool:
+        """
+        Turns off led in front site switch panel.
+        :return: True if led was turned off, otherwise False
+        """
         return self._select_led_radio_in_led_settings('off')
 
-    def user_account(self):
-        pass
+    @ControlField.require_login
+    def user_account(self) -> dict[str, str]:
+        """
+        Returns username of admin account.
+        :return: username
+        """
+        self.open_tab(self.MENU_SECTION, 'User Account')
+        self.web_controller.switch_to_frame(Frame.MAIN)
+        input_field_details = (By.XPATH, "//input[@id='txt_username']")
+        self.web_controller.wait_until_element_is_present(*input_field_details)
+        input_field = self.web_controller.find_element(*input_field_details)
+        return {'Current Username': input_field.get_attribute('value')}
 
-    def set_user_account_details(self, username, current_password, new_password, confirm_password):
-        pass
+    @ControlField.require_login
+    def set_user_account_details(self, username: str, current_password: str, new_password: str,
+                                 confirm_password: str) -> bool:
+        """
+        Sets new username and password for admin account.
+        :param username: current or new username
+        :param current_password: old password
+        :param new_password: new password
+        :param confirm_password: new password (confirmation)
+        :return: True if details was set successfully, otherwise False
+        """
+        self.open_tab(self.MENU_SECTION, 'User Account')
+        self.web_controller.switch_to_frame(Frame.MAIN)
+        self._enter_text_value_in_input_filed(username, 'txt_username')
+        self._enter_text_value_in_input_filed(current_password, 'txt_oldpwd')
+        self._enter_text_value_in_input_filed(new_password, 'txt_userpwd')
+        self._enter_text_value_in_input_filed(confirm_password, 'txt_confirmpwd')
+        self._apply_new_user_account_details()
+        return self._wait_for_success_alert()
 
     def _wait_for_success_alert(self):
         confirmation_alert_details = (By.XPATH, "//span[contains(text(), 'Operation successful.')]")
         try:
-            self.manager.wait_until_element_is_visible(*confirmation_alert_details)
+            self.web_controller.wait_until_element_is_visible(*confirmation_alert_details)
         except TpLinkSwitchError:
             return False
         return True
 
-    def _enter_text_value_in_ip_settings(self, value, input_id):
+    def _enter_text_value_in_input_filed(self, value, input_id):
         input_field_details = (By.XPATH, f"//input[@id='{input_id}']")
-        self.manager.wait_until_element_is_present(*input_field_details)
-        input_field = self.manager.webdriver.find_element(*input_field_details)
+        self.web_controller.wait_until_element_is_present(*input_field_details)
+        input_field = self.web_controller.find_element(*input_field_details)
         input_field.clear()
         input_field.send_keys(value)
 
     def _select_dhcp_option_in_ip_settings(self, action='Enable'):
         self.open_tab(self.MENU_SECTION, 'IP Setting')
-        self.manager.switch_to_frame(Frame.MAIN)
+        self.web_controller.switch_to_frame(Frame.MAIN)
         dhcp_settings_select_details = (By.XPATH, "//select[@id='check_dhcp']")
-        self.manager.wait_until_element_is_present(*dhcp_settings_select_details)
-        dhcp_settings_select = Select(self.manager.webdriver.find_element(*dhcp_settings_select_details))
+        self.web_controller.wait_until_element_is_present(*dhcp_settings_select_details)
+        dhcp_settings_select = Select(self.web_controller.find_element(*dhcp_settings_select_details))
         dhcp_settings_select.select_by_visible_text(action)
         self._apply_ip_settings()
         return self._wait_for_success_alert()
 
     def _select_led_radio_in_led_settings(self, action='on'):
         self.open_tab(self.MENU_SECTION, 'LED On/Off')
-        self.manager.switch_to_frame(Frame.MAIN)
+        self.web_controller.switch_to_frame(Frame.MAIN)
         led_on_radio_details = (By.XPATH, f"//input[@id='led_{action}']")
-        self.manager.wait_until_element_is_present(*led_on_radio_details)
-        led_on_radio = self.manager.webdriver.find_element(*led_on_radio_details)
+        self.web_controller.wait_until_element_is_present(*led_on_radio_details)
+        led_on_radio = self.web_controller.find_element(*led_on_radio_details)
         led_on_radio.click()
         self._apply_led_settings()
         return self._wait_for_success_alert()
 
     def _apply_ip_settings(self):
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='submit']")
-        self.manager.wait_until_element_is_present(*apply_button_details)
-        self.manager.webdriver.find_element(*apply_button_details).click()
-        self.manager.wait_until_alert_is_present()
-        alert = self.manager.webdriver.switch_to.alert
+        self.web_controller.wait_until_element_is_present(*apply_button_details)
+        self.web_controller.find_element(*apply_button_details).click()
+        self.web_controller.wait_until_alert_is_present()
+        alert = self.web_controller.webdriver.switch_to.alert
+        alert.accept()
+
+    def _apply_new_user_account_details(self):
+        apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='apply']")
+        self.web_controller.wait_until_element_is_present(*apply_button_details)
+        self.web_controller.find_element(*apply_button_details).click()
+        self.web_controller.wait_until_alert_is_present()
+        alert = self.web_controller.webdriver.switch_to.alert
         alert.accept()
 
     def _apply_led_settings(self):
         apply_button_details = (By.XPATH, "//td/a[@class='BTN']/input[@name='led_cfg']")
-        self.manager.wait_until_element_is_present(*apply_button_details)
-        self.manager.webdriver.find_element(*apply_button_details).click()
+        self.web_controller.wait_until_element_is_present(*apply_button_details)
+        self.web_controller.find_element(*apply_button_details).click()

@@ -4,6 +4,10 @@ class TpLinkSwitchError(Exception):
     pass
 
 
+class SwitchManagerNotConnectedError(TpLinkSwitchError):
+    pass
+
+
 class LoginError(TpLinkSwitchError):
     pass
 

@@ -10,11 +10,11 @@ class SwitchingControlField(ControlField):
 
     def ports_settings(self):
         self.open_tab(self.MENU_SECTION, 'Port Setting')
-        self.manager.switch_to_frame(Frame.MAIN)
+        self.web_controller.switch_to_frame(Frame.MAIN)
         ports_settings = {}
         ports_rows_details = (By.XPATH, f"//table[@class='BORDER']/tbody/tr/td[@class='TABLE_HEAD_BOTTOM']")
-        self.manager.wait_until_element_is_present(*ports_rows_details)
-        ports_rows = self.manager.webdriver.find_elements(*ports_rows_details)
+        self.web_controller.wait_until_element_is_present(*ports_rows_details)
+        ports_rows = self.web_controller.find_elements(*ports_rows_details)
         for i in range(0, 48, 6):
             ports_settings[f'Port {i // 6 + 1}'] = {
                 'Status': ports_rows[i+1].text,
