@@ -22,3 +22,11 @@ class InvalidDescription(TpLinkSwitchError):
 
 class DHCPSettingsEnabledError(TpLinkSwitchError):
     pass
+
+
+class LAGPortError(TpLinkSwitchError):
+    pass
+
+
+class UnknownControlFieldError(TpLinkSwitchError):
+    pass

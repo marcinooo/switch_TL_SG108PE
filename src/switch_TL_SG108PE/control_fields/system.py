@@ -1,9 +1,11 @@
+"""Contains code to manage given section from menu tab."""
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
 from switch_TL_SG108PE.control_fields.control_field import ControlField
 from switch_TL_SG108PE.utils import Frame
-from switch_TL_SG108PE.errors import InvalidDescription, TpLinkSwitchError, DHCPSettingsEnabledError
+from switch_TL_SG108PE.errors import InvalidDescription, DHCPSettingsEnabledError
 
 
 class SystemControlField(ControlField):
@@ -55,7 +57,7 @@ class SystemControlField(ControlField):
         input_field.send_keys(description)
         apply_button_details = (By.XPATH, "//input[@id='btApply']")
         self.web_controller.find_element(*apply_button_details).click()
-        return self._wait_for_success_alert()
+        return self.wait_for_success_alert()
 
     @ControlField.require_login
     def ip_settings(self) -> dict[str, str]:
@@ -113,8 +115,9 @@ class SystemControlField(ControlField):
         self._enter_text_value_in_input_filed(ip_address, 'txt_addr')
         self._enter_text_value_in_input_filed(subnet_mask, 'txt_mask')
         self._enter_text_value_in_input_filed(default_gateway, 'txt_gateway')
-        self._apply_ip_settings()
-        return self._wait_for_success_alert()
+        apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='submit']")
+        self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
+        return self.wait_for_success_alert()
 
     @ControlField.require_login
     def led_on(self) -> bool:
@@ -162,16 +165,9 @@ class SystemControlField(ControlField):
         self._enter_text_value_in_input_filed(current_password, 'txt_oldpwd')
         self._enter_text_value_in_input_filed(new_password, 'txt_userpwd')
         self._enter_text_value_in_input_filed(confirm_password, 'txt_confirmpwd')
-        self._apply_new_user_account_details()
-        return self._wait_for_success_alert()
-
-    def _wait_for_success_alert(self):
-        confirmation_alert_details = (By.XPATH, "//span[contains(text(), 'Operation successful.')]")
-        try:
-            self.web_controller.wait_until_element_is_visible(*confirmation_alert_details)
-        except TpLinkSwitchError:
-            return False
-        return True
+        apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='apply']")
+        self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
+        return self.wait_for_success_alert()
 
     def _enter_text_value_in_input_filed(self, value, input_id):
         input_field_details = (By.XPATH, f"//input[@id='{input_id}']")
@@ -187,8 +183,9 @@ class SystemControlField(ControlField):
         self.web_controller.wait_until_element_is_present(*dhcp_settings_select_details)
         dhcp_settings_select = Select(self.web_controller.find_element(*dhcp_settings_select_details))
         dhcp_settings_select.select_by_visible_text(action)
-        self._apply_ip_settings()
-        return self._wait_for_success_alert()
+        apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='submit']")
+        self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
+        return self.wait_for_success_alert()
 
     def _select_led_radio_in_led_settings(self, action='on'):
         self.open_tab(self.MENU_SECTION, 'LED On/Off')
@@ -197,26 +194,6 @@ class SystemControlField(ControlField):
         self.web_controller.wait_until_element_is_present(*led_on_radio_details)
         led_on_radio = self.web_controller.find_element(*led_on_radio_details)
         led_on_radio.click()
-        self._apply_led_settings()
-        return self._wait_for_success_alert()
-
-    def _apply_ip_settings(self):
-        apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='submit']")
-        self.web_controller.wait_until_element_is_present(*apply_button_details)
-        self.web_controller.find_element(*apply_button_details).click()
-        self.web_controller.wait_until_alert_is_present()
-        alert = self.web_controller.webdriver.switch_to.alert
-        alert.accept()
-
-    def _apply_new_user_account_details(self):
-        apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='apply']")
-        self.web_controller.wait_until_element_is_present(*apply_button_details)
-        self.web_controller.find_element(*apply_button_details).click()
-        self.web_controller.wait_until_alert_is_present()
-        alert = self.web_controller.webdriver.switch_to.alert
-        alert.accept()
-
-    def _apply_led_settings(self):
         apply_button_details = (By.XPATH, "//td/a[@class='BTN']/input[@name='led_cfg']")
-        self.web_controller.wait_until_element_is_present(*apply_button_details)
-        self.web_controller.find_element(*apply_button_details).click()
+        self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
+        return self.wait_for_success_alert()

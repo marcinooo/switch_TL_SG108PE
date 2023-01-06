@@ -11,7 +11,8 @@ from switch_TL_SG108PE.control_fields.monitoring import MonitoringControlField
 from switch_TL_SG108PE.control_fields.vlan import VLANControlField
 from switch_TL_SG108PE.control_fields.qos import QoSControlField
 from switch_TL_SG108PE.control_fields.poe import PoEControlField
-from switch_TL_SG108PE.errors import LoginError, LogoutError, TpLinkSwitchError, SwitchManagerNotConnectedError
+from switch_TL_SG108PE.errors import (LoginError, LogoutError, TpLinkSwitchError, SwitchManagerNotConnectedError,
+                                      UnknownControlFieldError)
 
 
 class SwitchManager:
@@ -73,6 +74,9 @@ class SwitchManager:
         """
         if not self.is_connected:
             raise SwitchManagerNotConnectedError('Switch manager is not connected. Please call connect() method first.')
+        if control_field not in self._control_fields:
+            raise UnknownControlFieldError(f'"{control_field}" control filed is not recognised. '
+                                           f'Possible control fields: {", ".join(self._control_fields.keys())}')
         return self._control_fields[control_field]
 
     def get_control_fields(self) -> List[str]:

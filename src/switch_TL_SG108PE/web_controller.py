@@ -3,6 +3,8 @@
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
 from switch_TL_SG108PE.errors import LoginError, LogoutError, TpLinkSwitchError, SwitchManagerNotConnectedError
@@ -100,6 +102,14 @@ class WebController:
         :return: found elements
         """
         return self.webdriver.find_elements(method, query)
+
+    def click_element_with_control_key_pressed(self, element) -> None:  # TODO: add type of element
+        """
+        Clicks given element with Ctrl key pressed.
+        :param element: element to click
+        :return: None
+        """
+        ActionChains(self.webdriver).key_down(Keys.CONTROL).click(element).key_up(Keys.CONTROL).perform()
 
     def wait_until_element_is_present(self, method: str, query: str, timeout: int = 4, close_browser: bool = True,
                                       exception=TpLinkSwitchError) -> None:  # TODO: Add typing
