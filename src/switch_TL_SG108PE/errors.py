@@ -30,3 +30,7 @@ class LAGPortError(TpLinkSwitchError):
 
 class UnknownControlFieldError(TpLinkSwitchError):
     pass
+
+
+class PortIsNotAvailableError(TpLinkSwitchError):
+    pass

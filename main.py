@@ -38,7 +38,17 @@ def main():
     # switching.enable_igmp_snooping()
     # switching.lag_settings()
     # switching.set_lag_ports(GROUP_ID.LAG1, NO.PORT_1, NO.PORT_2)
-    switching.unset_lag_ports(GROUP_ID.LAG1)
+    # switching.unset_lag_ports(GROUP_ID.LAG1)
+    # print(monitoring.port_statistics())
+    # print(monitoring.clear_port_statistics())
+    # print(monitoring.port_statistics())
+
+    ### MONITORING
+    monitoring = switch_manager.control('monitoring')
+    # monitoring.enable_port_mirroring([NO.PORT_2, NO.PORT_3], NO.PORT_1)
+    # print(monitoring.mirroring_port())
+    # print(monitoring.mirrored_ports())
+    print(monitoring.enable_loop_prevention())
     switch_manager.disconnect()
 
 

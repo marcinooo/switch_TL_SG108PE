@@ -55,7 +55,7 @@ class SystemControlField(ControlField):
         input_field = self.web_controller.find_element(*input_field_details)
         input_field.clear()
         input_field.send_keys(description)
-        apply_button_details = (By.XPATH, "//input[@id='btApply']")
+        apply_button_details = (By.XPATH, "//input[@id='btApply']")  # TODO: Change apply
         self.web_controller.find_element(*apply_button_details).click()
         return self.wait_for_success_alert()
 
