@@ -3,20 +3,20 @@
 from typing import Callable
 from selenium.webdriver.common.by import By
 
-from switch_TL_SG108PE.utils import Frame
-from switch_TL_SG108PE.errors import TpLinkSwitchError
+from ..utils import Frame
+from ..exceptions import TpLinkSwitchError
 
 
-class ControlField:
+class ControlField:  # TODO: As meta
     """Creates object to control base actions on switch page."""
 
     def __init__(self, web_controller):
         self.web_controller = web_controller
 
     @staticmethod
-    def require_login(func: Callable) -> Callable:
+    def login_required(func: Callable) -> Callable:
         """
-        Decorator to check if client is login. If client is not login it will try login it again.
+        Decorator to check if client is login. If client is not login it will try login again.
         :param func: function to decorate
         :return: internal wrapper
         """
@@ -48,8 +48,8 @@ class ControlField:
 
     def wait_for_success_alert(self) -> bool:
         """
-        Waits for success info alert.
-        :return: True if an alert has occurred, otherwise False
+        Waits for success html alert.
+        :return: True if an alert was occurred, otherwise False
         """
         confirmation_alert_details = (By.XPATH, "//span[contains(text(), 'Operation successful.')]")
         try:
@@ -58,12 +58,20 @@ class ControlField:
             return False
         return True
 
-    def apply_settings(self, method, query: str, wait_for_confirmation_alert: bool = False) -> None:  # TODO: add type of param
+    def get_alert_text(self):
+        alert_details = (By.XPATH, "//span[@id='sp_tip_svr']/span[@class='TIP_CONTENT']")
+        try:
+            self.web_controller.wait_until_element_is_visible(*alert_details, timeout=5)
+        except TpLinkSwitchError:
+            return ''
+        return self.web_controller.find_element(*alert_details).text
+
+    def apply_settings(self, method: By, query: str, wait_for_confirmation_alert: bool = False) -> None:
         """
-        Applays given configuration. It searches apply button and clicks it.
+        Applies given configuration from filled form. It searches apply button and clicks it.
         :param method: used to specify which attribute is used to locate elements on a page
         :param query: key used to locate elements on a page
-        :param wait_for_confirmation_alert: indicates if method should wait for alert to confirm applying
+        :param wait_for_confirmation_alert: indicates if method should wait for browser alert to confirm applying
         :return: None
         """
         apply_button_details = (method, query)

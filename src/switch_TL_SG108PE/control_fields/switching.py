@@ -1,12 +1,13 @@
-"""Contains code to manage given section from menu tab."""
+"""Contains code to manage switching section from menu tab."""
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.remote.webelement import WebElement
 
-from switch_TL_SG108PE.control_fields.control_field import ControlField
-from switch_TL_SG108PE.utils import Frame
-from switch_TL_SG108PE.port import settings
-from switch_TL_SG108PE.errors import LAGPortError
+from .control_field import ControlField
+from ..utils import Frame, get_port_label, get_lag_label, validate_port_id, validate_lag_id
+from ..port import STATUS, SPEED, FLOW_CONTROL
+from ..exceptions import LAGPortError, OptionDisabled, TpLinkSwitchError # TODO: Camelcase
 
 
 class SwitchingControlField(ControlField):
@@ -14,7 +15,7 @@ class SwitchingControlField(ControlField):
 
     MENU_SECTION = 'Switching'
 
-    @ControlField.require_login
+    @ControlField.login_required
     def ports_settings(self) -> dict[str, dict[str, str]]:
         """
         Returns settings of all ports.
@@ -36,41 +37,37 @@ class SwitchingControlField(ControlField):
             }
         return ports_settings
 
-    def set_port_settings(self, port_number: settings.NO, status: settings.STATUS, speed: settings.SPEED,
-                          flow_control: settings.FLOW_CONTROL) -> bool:
+    @ControlField.login_required
+    def set_port_settings(self, port: int, status: STATUS, speed: SPEED, flow_control: FLOW_CONTROL) -> bool:
         """
         Apply given settings for indicated port.
-        :param port_number: number of port
+        :param port: number of port
         :param status: status of port (enable / disable)
         :param speed: speed of port (auto / 10MH / 10MF / 100MH / 100MF / 1000Mf)
         :param flow_control: flow control enabled or disabled (on / off)
         :return: True if port settings was applied successfully, otherwise False
         """
-        if not isinstance(port_number, settings.NO):
-            raise TypeError(f'port_number argument must be an instance of switch_TL_SG108PE.port.settings.NO')
+        validate_port_id(port)
+        port_label = get_port_label(port)
         self.open_tab(self.MENU_SECTION, 'Port Setting')
         self.web_controller.switch_to_frame(Frame.MAIN)
         port_select_details = (By.XPATH, "//select[@id='portSel']")
-        self.web_controller.wait_until_element_is_present(*port_select_details)
-        port_select = Select(self.web_controller.find_element(*port_select_details))
-        port_select.select_by_visible_text(port_number.value)
+        if not self._select_port_setting(*port_select_details, port_label.value):
+            raise OptionDisabled(f'Option {port_label} is disabled.')
         status_select_details = (By.XPATH, "//select[@name='state']")
-        self.web_controller.wait_until_element_is_present(*status_select_details)
-        status_select = Select(self.web_controller.find_element(*status_select_details))
-        status_select.select_by_visible_text(status.value)
+        if not self._select_port_setting(*status_select_details, status.value):
+            raise OptionDisabled(f'Option {status} is disabled.')
         speed_select_details = (By.XPATH, "//select[@name='speed']")
-        self.web_controller.wait_until_element_is_present(*speed_select_details)
-        speed_select = Select(self.web_controller.find_element(*speed_select_details))
-        speed_select.select_by_visible_text(speed.value)
+        if not self._select_port_setting(*speed_select_details, speed.value):
+            raise OptionDisabled(f'Option {speed} is disabled.')
         flow_control_select_details = (By.XPATH, "//select[@name='flowcontrol']")
-        self.web_controller.wait_until_element_is_present(*flow_control_select_details)
-        flow_control_select = Select(self.web_controller.find_element(*flow_control_select_details))
-        flow_control_select.select_by_visible_text(flow_control.value)
+        if not self._select_port_setting(*flow_control_select_details, flow_control.value):
+            raise OptionDisabled(f'Option {flow_control} is disabled.')
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='apply']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
         return self.wait_for_success_alert()
 
-    @ControlField.require_login
+    @ControlField.login_required
     def igmp_snooping(self) -> dict[str, str]:
         """
         Returns settings of IGMP settings and Report Message Suppression.
@@ -87,7 +84,7 @@ class SwitchingControlField(ControlField):
             if enable_input.get_attribute('checked') else 'Disable'
         return igmp_snooping_settings
 
-    @ControlField.require_login
+    @ControlField.login_required
     def enable_igmp_snooping(self) -> bool:
         """
         Enables IGMP settings.
@@ -101,7 +98,7 @@ class SwitchingControlField(ControlField):
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
         return self.wait_for_success_alert()
 
-    @ControlField.require_login
+    @ControlField.login_required
     def disable_igmp_snooping(self) -> bool:
         """
         Disables IGMP settings.
@@ -115,7 +112,7 @@ class SwitchingControlField(ControlField):
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
         return self.wait_for_success_alert()
 
-    @ControlField.require_login
+    @ControlField.login_required
     def enable_report_message_suppression(self) -> bool:
         """
         Enables Report Message Suppression.
@@ -129,7 +126,7 @@ class SwitchingControlField(ControlField):
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
         return self.wait_for_success_alert()
 
-    @ControlField.require_login
+    @ControlField.login_required
     def disable_report_message_suppression(self) -> bool:
         """
         Disables Report Message Suppression.
@@ -143,8 +140,8 @@ class SwitchingControlField(ControlField):
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
         return self.wait_for_success_alert()
 
-    @ControlField.require_login
-    def lag_settings(self):
+    @ControlField.login_required
+    def lag_settings(self) -> dict[str, str]:
         """
         Returns information about LAG settings.
         :return: current settings
@@ -162,44 +159,49 @@ class SwitchingControlField(ControlField):
             lag_settings[lag_tds[i].text] = lag_tds[i+1].text
         return lag_settings
 
-    @ControlField.require_login
-    def set_lag_ports(self, group_id, *ports):
+    @ControlField.login_required
+    def set_lag_ports(self, lag_id: int, ports: list[int]) -> bool:
         """
         Sets given LAG for indicated ports. At least two ports should be passed.
-        :param group_id: id of LAG
+        Mirroring port cannot be a trunk member port. Mirroring and mirrored port cannot be added to a LAG group.
+        :param lag_id: id of LAG
         :param ports: list of ports
-        :return: True if ports were added to LAG group successfully, otherwise False
+        :return: True if ports were added to LAG group successfully
         """
-        if len(ports) < 2:
-            # TODO: Add webdriver quite
-            raise LAGPortError('At least two ports should be added.')
+        validate_lag_id(lag_id)
+        for port in ports:
+            validate_port_id(port)
+        if not 2 <= len(ports) <= 4:
+            raise LAGPortError('Each LAG group has up to 4 port members and has at least two port members.')
+        if lag_id == 1 and not all(map(lambda p: p in [1, 2, 3, 4], ports)):
+            raise LAGPortError('Port can not be selected, available ports of LAG 1: port 1 -- port 4')
+        if lag_id == 2 and not all(map(lambda p: p in [5, 6, 7, 8], ports)):
+            raise LAGPortError('Port can not be selected, available ports of LAG 1: port 5 -- port 8')
         self.open_tab(self.MENU_SECTION, 'LAG')
         self.web_controller.switch_to_frame(Frame.MAIN)
-        lag_select_details = (By.XPATH, "//select[@id='trunkSel']")
-        self.web_controller.wait_until_element_is_present(*lag_select_details)
-        lag_select = Select(self.web_controller.find_element(*lag_select_details))
-        lag_select.select_by_visible_text(group_id.value)
-        port_select_details = (By.XPATH, "//select[@id='portSel']")
-        self.web_controller.wait_until_element_is_present(*port_select_details)
-        port_select = self.web_controller.find_element(*port_select_details)
-        for port in ports:
-            option_details = (By.XPATH, f"//option[contains(text(),'{port.value}')]")
-            option = port_select.find_element(*option_details)
-            self.web_controller.click_element_with_control_key_pressed(option)
+        self._fill_lag_settings_form(lag_id, ports)
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='setapply']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise LAGPortError('Cannot add port to LAG group due to unknown error.')
+        if alert_info == 'Mirroring port cannot be a trunk member port':
+            raise LAGPortError('Mirroring port cannot be a trunk member port. '
+                               'Mirroring and mirrored port cannot be added to a LAG group.')
+        return True
 
-    @ControlField.require_login
-    def unset_lag_ports(self, group_id):
+    @ControlField.login_required
+    def unset_lag_ports(self, lag_id: int) -> bool:
         """
         Delete all ports from given LAG group.
-        :param group_id: id of LAG
+        :param lag_id: id of LAG
         :return: True if ports were deleted successfully, otherwise False
         """
+        validate_lag_id(lag_id)
         self.open_tab(self.MENU_SECTION, 'LAG')
         self.web_controller.switch_to_frame(Frame.MAIN)
-        input_checkbox_details = (By.XPATH, f"//input[@name='chk_trunk' and @id='chk{group_id.value.split()[1]}']")
+        lag_label = get_lag_label(lag_id)
+        input_checkbox_details = (By.XPATH, f"//input[@name='chk_trunk' and @id='chk{lag_label.value.split()[1]}']")
         self.web_controller.wait_until_element_is_present(*input_checkbox_details)
         input_checkbox = self.web_controller.find_element(*input_checkbox_details)
         input_checkbox.click()
@@ -207,9 +209,32 @@ class SwitchingControlField(ControlField):
         self.apply_settings(*delete_button_details, wait_for_confirmation_alert=False)
         return self.wait_for_success_alert()
 
-    def _find_igmp_snooping_input(self, input_id):
+    def _find_igmp_snooping_input(self, input_id: str) -> WebElement:
         input_details = (By.XPATH, f"//input[@id='{input_id}']")
         self.web_controller.wait_until_element_is_present(*input_details)
         return self.web_controller.find_element(*input_details)
 
+    def _select_port_setting(self, method: str, query: str, value: str) -> bool:
+        select_details = (method, query)
+        self.web_controller.wait_until_element_is_present(*select_details)
+        select = Select(self.web_controller.find_element(*select_details))
+        try:
+            select.select_by_visible_text(value)
+        except NotImplementedError:
+            return False
+        return True
 
+    def _fill_lag_settings_form(self, lag_id: int, ports: list[int]) -> None:
+        lag_select_details = (By.XPATH, "//select[@id='trunkSel']")
+        self.web_controller.wait_until_element_is_present(*lag_select_details)
+        lag_select = Select(self.web_controller.find_element(*lag_select_details))
+        lag_label = get_lag_label(lag_id)
+        lag_select.select_by_visible_text(lag_label.value)
+        port_select_details = (By.XPATH, "//select[@id='portSel']")
+        self.web_controller.wait_until_element_is_present(*port_select_details)
+        port_select = self.web_controller.find_element(*port_select_details)
+        for port in ports:
+            port_label = get_port_label(port)
+            option_details = (By.XPATH, f"//option[contains(text(),'{port_label.value}')]")
+            option = port_select.find_element(*option_details)
+            self.web_controller.click_element_with_control_key_pressed(option)

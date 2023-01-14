@@ -1,11 +1,11 @@
-"""Contains code to manage given section from menu tab."""
+"""Contains code to manage system section from menu tab."""
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from switch_TL_SG108PE.control_fields.control_field import ControlField
-from switch_TL_SG108PE.utils import Frame
-from switch_TL_SG108PE.errors import InvalidDescription, DHCPSettingsEnabledError
+from .control_field import ControlField
+from ..utils import Frame
+from ..exceptions import InvalidDescriptionException, InvalidUserAccountDetailsException, DHCPSettingsEnabledError
 
 
 class SystemControlField(ControlField):
@@ -13,11 +13,11 @@ class SystemControlField(ControlField):
 
     MENU_SECTION = 'System'
 
-    @ControlField.require_login
+    @ControlField.login_required
     def system_info(self) -> dict[str, str]:
         """
         Gets switch system information.
-        :return: dict with base information about switch system
+        :return: dict with basic information about switch system
         """
         system_info = {}
         self.open_tab(self.MENU_SECTION, 'System Info')
@@ -38,7 +38,7 @@ class SystemControlField(ControlField):
             system_info[key] = artifact.text
         return system_info
 
-    @ControlField.require_login
+    @ControlField.login_required
     def set_device_description(self, description: str) -> bool:
         """
         Sets name of switch visible in network.
@@ -47,7 +47,7 @@ class SystemControlField(ControlField):
         """
         description = str(description)
         if len(description) > 32:
-            raise InvalidDescription('The length of device description should not be more than 32 characters.')
+            raise InvalidDescriptionException('The length of device description should not be more than 32 characters.')
         self.open_tab(self.MENU_SECTION, 'System Info')
         self.web_controller.switch_to_frame(Frame.MAIN)
         input_field_details = (By.XPATH, "//input[@id='tDevDscr']")
@@ -55,11 +55,11 @@ class SystemControlField(ControlField):
         input_field = self.web_controller.find_element(*input_field_details)
         input_field.clear()
         input_field.send_keys(description)
-        apply_button_details = (By.XPATH, "//input[@id='btApply']")  # TODO: Change apply
+        apply_button_details = (By.XPATH, "//input[@id='btApply']")
         self.web_controller.find_element(*apply_button_details).click()
         return self.wait_for_success_alert()
 
-    @ControlField.require_login
+    @ControlField.login_required
     def ip_settings(self) -> dict[str, str]:
         """
         Gets ip settings. It shows ip assigned to switch in network.
@@ -81,7 +81,7 @@ class SystemControlField(ControlField):
             ip_info[key] = artifact.get_attribute('value')
         return ip_info
 
-    @ControlField.require_login
+    @ControlField.login_required
     def enable_dhcp_configuration(self) -> bool:
         """
         Enables the function of automatic ip retrieval from dhcp server in the network.
@@ -89,7 +89,7 @@ class SystemControlField(ControlField):
         """
         return self._select_dhcp_option_in_ip_settings('Enable')
 
-    @ControlField.require_login
+    @ControlField.login_required
     def disable_dhcp_configuration(self) -> bool:
         """
         Disables the function of automatic ip retrieval from dhcp server in the network.
@@ -98,7 +98,7 @@ class SystemControlField(ControlField):
         """
         return self._select_dhcp_option_in_ip_settings('Disable')
 
-    @ControlField.require_login
+    @ControlField.login_required
     def set_ip(self, ip_address: str, subnet_mask: str, default_gateway: str) -> bool:
         """
         Sets switch ip, netmask, gateway. It works only if dhcp configuration is disabled.
@@ -119,7 +119,7 @@ class SystemControlField(ControlField):
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
         return self.wait_for_success_alert()
 
-    @ControlField.require_login
+    @ControlField.login_required
     def led_on(self) -> bool:
         """
         Turns on led in front site switch panel.
@@ -127,7 +127,7 @@ class SystemControlField(ControlField):
         """
         return self._select_led_radio_in_led_settings('on')
 
-    @ControlField.require_login
+    @ControlField.login_required
     def led_off(self) -> bool:
         """
         Turns off led in front site switch panel.
@@ -135,7 +135,7 @@ class SystemControlField(ControlField):
         """
         return self._select_led_radio_in_led_settings('off')
 
-    @ControlField.require_login
+    @ControlField.login_required
     def user_account(self) -> dict[str, str]:
         """
         Returns username of admin account.
@@ -148,7 +148,7 @@ class SystemControlField(ControlField):
         input_field = self.web_controller.find_element(*input_field_details)
         return {'Current Username': input_field.get_attribute('value')}
 
-    @ControlField.require_login
+    @ControlField.login_required
     def set_user_account_details(self, username: str, current_password: str, new_password: str,
                                  confirm_password: str) -> bool:
         """
@@ -157,26 +157,34 @@ class SystemControlField(ControlField):
         :param current_password: old password
         :param new_password: new password
         :param confirm_password: new password (confirmation)
-        :return: True if details was set successfully, otherwise False
+        :return: True if details was set successfully
         """
         self.open_tab(self.MENU_SECTION, 'User Account')
         self.web_controller.switch_to_frame(Frame.MAIN)
-        self._enter_text_value_in_input_filed(username, 'txt_username')
-        self._enter_text_value_in_input_filed(current_password, 'txt_oldpwd')
-        self._enter_text_value_in_input_filed(new_password, 'txt_userpwd')
-        self._enter_text_value_in_input_filed(confirm_password, 'txt_confirmpwd')
+        self._enter_text_value_in_input_filed(str(username), 'txt_username')
+        self._enter_text_value_in_input_filed(str(current_password), 'txt_oldpwd')
+        self._enter_text_value_in_input_filed(str(new_password), 'txt_userpwd')
+        self._enter_text_value_in_input_filed(str(confirm_password), 'txt_confirmpwd')
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='apply']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise InvalidUserAccountDetailsException(
+                f'Cannot set users details: username="{username}", current_password="****", new_password="****", '
+                f'confirm_password="****" due to unknown error.'
+            )
+        if alert_info != 'Operation successful.':
+            raise InvalidUserAccountDetailsException(f'Cannot set users details: {alert_info}')
+        return True
 
-    def _enter_text_value_in_input_filed(self, value, input_id):
+    def _enter_text_value_in_input_filed(self, value: str, input_id: str) -> None:
         input_field_details = (By.XPATH, f"//input[@id='{input_id}']")
         self.web_controller.wait_until_element_is_present(*input_field_details)
         input_field = self.web_controller.find_element(*input_field_details)
         input_field.clear()
         input_field.send_keys(value)
 
-    def _select_dhcp_option_in_ip_settings(self, action='Enable'):
+    def _select_dhcp_option_in_ip_settings(self, action: str = 'Enable') -> bool:
         self.open_tab(self.MENU_SECTION, 'IP Setting')
         self.web_controller.switch_to_frame(Frame.MAIN)
         dhcp_settings_select_details = (By.XPATH, "//select[@id='check_dhcp']")
@@ -187,7 +195,7 @@ class SystemControlField(ControlField):
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
         return self.wait_for_success_alert()
 
-    def _select_led_radio_in_led_settings(self, action='on'):
+    def _select_led_radio_in_led_settings(self, action: str = 'on') -> bool:
         self.open_tab(self.MENU_SECTION, 'LED On/Off')
         self.web_controller.switch_to_frame(Frame.MAIN)
         led_on_radio_details = (By.XPATH, f"//input[@id='led_{action}']")

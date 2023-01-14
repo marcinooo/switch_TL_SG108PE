@@ -1,10 +1,12 @@
 """Contains constants value of port settings."""
 
 from enum import Enum
+from typing import Optional
+from dataclasses import dataclass
 
 
-class NO(Enum):
-    """Number (labels) of ports."""
+class PORT_LABEL(Enum):
+    """Labels of ports."""
     PORT_1 = 'Port 1'
     PORT_2 = 'Port 2'
     PORT_3 = 'Port 3'
@@ -13,6 +15,12 @@ class NO(Enum):
     PORT_6 = 'Port 6'
     PORT_7 = 'Port 7'
     PORT_8 = 'Port 8'
+
+
+class LAG_LABEL(Enum):
+    """Labels of LAG."""
+    LAG_1 = 'LAG 1'
+    LAG_2 = 'LAG 2'
 
 
 class STATUS(Enum):
@@ -37,7 +45,12 @@ class FLOW_CONTROL(Enum):
     OFF = 'Off'
 
 
-class GROUP_ID(Enum):
-    """Lag group id (label)."""
-    LAG1 = 'LAG 1'
-    LAG2 = 'LAG 2'
+@dataclass
+class IEEE8021QPort:
+    """Port object with required artifacts for VLAN 802.1Q settings."""
+    port_id: int
+    tagged: Optional[bool]
+
+    def __post_init__(self):
+        if self.tagged is None:
+            self.tagged = False

@@ -6,7 +6,7 @@ from unittest.mock import Mock, MagicMock, patch
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src'))
 
 from switch_TL_SG108PE.control_fields.switching import SwitchingControlField
-from switch_TL_SG108PE.port.settings import NO, STATUS, SPEED, FLOW_CONTROL, GROUP_ID
+from switch_TL_SG108PE.port import STATUS, SPEED, FLOW_CONTROL
 
 
 class TestSwitching(unittest.TestCase):
@@ -22,8 +22,8 @@ class TestSwitching(unittest.TestCase):
 
     @patch('switch_TL_SG108PE.control_fields.switching.Select', Mock())
     def test_set_port_settings(self):
-        status = self.switching.set_port_settings(port_number=NO.PORT_1, status=STATUS.ENABLE,
-                                                  speed=SPEED.AUTO, flow_control=FLOW_CONTROL.OFF)
+        status = self.switching.set_port_settings(port=1, status=STATUS.ENABLE, speed=SPEED.AUTO,
+                                                  flow_control=FLOW_CONTROL.OFF)
         self.assertTrue(status)
 
     def test_igmp_snooping(self):
@@ -48,7 +48,7 @@ class TestSwitching(unittest.TestCase):
 
     @patch('switch_TL_SG108PE.control_fields.switching.Select', Mock())
     def test_set_lag_ports(self):
-        self.assertTrue(self.switching.set_lag_ports(GROUP_ID.LAG1, NO.PORT_1, NO.PORT_2))
+        self.assertTrue(self.switching.set_lag_ports(1, [1, 2]))
 
     def test_unset_lag_ports(self):
-        self.assertTrue(self.switching.unset_lag_ports(GROUP_ID.LAG1))
+        self.assertTrue(self.switching.unset_lag_ports(1))

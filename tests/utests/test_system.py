@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src'))
 
 from switch_TL_SG108PE.control_fields.system import SystemControlField
-from switch_TL_SG108PE.errors import DHCPSettingsEnabledError
+from switch_TL_SG108PE.exceptions import DHCPSettingsEnabledError
 
 
 class TestSystem(unittest.TestCase):
@@ -63,5 +63,7 @@ class TestSystem(unittest.TestCase):
         user_account = self.system.user_account()
         self.assertIsNotNone(user_account.get('Current Username'))
 
-    def test_set_user_account_details(self):
+    @patch.object(SystemControlField, 'get_alert_text')
+    def test_set_user_account_details(self, get_alert_text):
+        get_alert_text.return_value = 'Operation successful.'
         self.assertTrue(self.system.set_user_account_details('admin', 'old_admin', 'new_admin', 'new_admin'))  # ;)
