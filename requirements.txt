@@ -1,1 +1,7 @@
+# Prod
 selenium
+
+# Dev
+pytest
+ddt
+python-dotenv

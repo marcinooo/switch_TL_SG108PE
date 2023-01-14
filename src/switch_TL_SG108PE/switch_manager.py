@@ -1,180 +1,104 @@
-from selenium import webdriver as wd
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
+"""Contains main class to control switch."""
 
-from switch_TL_SG108PE.control_fields.system import SystemControlField
-from switch_TL_SG108PE.control_fields.switching import SwitchingControlField
-from switch_TL_SG108PE.errors import LoginError, LogoutError, TpLinkSwitchError
-from switch_TL_SG108PE.utils import Frame
+from typing import List
+from selenium import webdriver as wd
+from selenium.webdriver.remote.webdriver import WebDriver
+
+from .web_controller import WebController
+from .control_fields.control_field import ControlField
+from .control_fields.system import SystemControlField
+from .control_fields.switching import SwitchingControlField
+from .control_fields.monitoring import MonitoringControlField
+from .control_fields.vlan import VLANControlField
+from .control_fields.qos import QoSControlField
+from .control_fields.poe import PoEControlField
+from .exceptions import SwitchManagerNotConnectedException, UnknownControlFieldException
 
 
 class SwitchManager:
+    """Creates object to control switch TL-SG108PE."""
 
-    def __init__(self):
-        self.ip = None
+    def __init__(self) -> None:
+        self.host = None
         self.login = None
         self.password = None
-        self.webdriver = None
         self.is_connected = False
+        self._web_controller = None
         self._control_fields = {}
-        self._active_frame = ''
 
-    def is_logged_in(func):
-        def inner(self, *args, **kwargs):
-            self.switch_to_default_content()
-            top_frame_details = (By.XPATH, f"//frame[@name='{Frame.TOP.value}']")
-            self.webdriver.find_element(*top_frame_details)
-            return func(self, *args, **kwargs)
-        return inner
-
-    def connect(self, ip, login, password, webdriver=None):
-        if webdriver is None:
-            webdriver = wd.Chrome()
-        self.ip = ip  # TODO: checking ip
+    # pylint: disable=too-many-arguments
+    def connect(self, host: str, login: str, password: str, headless: bool = True, webdriver: WebDriver = None) -> None:
+        """
+        Connects SwitchManager to admin web page of switch.
+        :param host: host address of switch
+        :param login: name of login
+        :param password: secret password
+        :param headless: if True browser will be opened in background, otherwise browser will be visible
+        :param webdriver: custom webdriver object
+        :return: None
+        """
+        self.host = host
         self.login = login
         self.password = password
-        self.webdriver = webdriver
-        self._login()
-        self.is_connected = True
+        if webdriver is None:
+            if headless:
+                options = wd.ChromeOptions()
+                options.add_argument("--headless")
+                options.add_experimental_option('excludeSwitches', ['enable-logging'])
+                webdriver = wd.Chrome(options=options)
+            else:
+                webdriver = wd.Chrome()
+        self._web_controller = WebController(host, login, password, webdriver)
+        self._web_controller.login()
         self._control_fields = {
-            'system': SystemControlField(self),
-            'switching': SwitchingControlField(self),
-            # 'monitoring': MonitoringControlField(self),
-            # 'VLAN': VLANControlField(self),
-            # 'QoS': QoSControlField(self),
-            # 'PoE': PoEControlField(self)
+            'system': SystemControlField(self._web_controller),
+            'switching': SwitchingControlField(self._web_controller),
+            'monitoring': MonitoringControlField(self._web_controller),
+            'VLAN': VLANControlField(self._web_controller),
+            'QoS': QoSControlField(self._web_controller),
+            'PoE': PoEControlField(self._web_controller)
         }
+        self.is_connected = True
 
-    @is_logged_in
-    def disconnect(self):
-        self._logout()
-        self.ip = None
+    def disconnect(self) -> None:
+        """
+        Disconnects SwitchManager from admin web page of switch.
+        :return: None
+        """
+        self._web_controller.logout()
+        self._web_controller.quit()
+        self.host = None
         self.login = None
         self.password = None
-        self.webdriver = None
+        self._web_controller = None
         self.is_connected = False
-        self._active_frame = ''
+        self._destroy_control_fields()
+        self._control_fields = {}
 
-    @is_logged_in
-    def get(self, control_field):
+    def control(self, control_field: str) -> ControlField:
+        """
+        Returns object to control particular section in admin web page - control field.
+        There are 6 control sections: system, switching, monitoring, VLAN, QoS, PoE
+        :param control_field: name of control field (according to sidebar navigation in admin web page)
+        :return: given control field
+        """
+        if control_field not in self._control_fields:
+            raise UnknownControlFieldException(f'"{control_field}" control filed is not recognised. '
+                                           f'Possible control fields: {", ".join(self._control_fields.keys())}')
+        if not self.is_connected:
+            raise SwitchManagerNotConnectedException(
+                'Switch manager is not connected. Please call connect() method first.')
         return self._control_fields[control_field]
 
-    def _login(self):
-        self.webdriver.get(f'http://{self.ip}')
-        try:
-            self.wait_until_element_is_present(By.ID, 'logon', close_browser=False)
-        except TpLinkSwitchError:
-            self._logout()
-        self.wait_until_element_is_present(By.ID, 'logon', exception=LoginError)
-        self.webdriver.find_element(By.ID, 'username').send_keys(self.login)
-        self.webdriver.find_element(By.ID, 'password').send_keys(self.password)
-        self.webdriver.find_element(By.ID, 'logon').click()
-        self.wait_until_element_is_present(By.XPATH, f"//frame[@name='{Frame.TOP.value}']", exception=LoginError)
+    def get_control_fields(self) -> List[str]:
+        """
+        Returns list of possible control fields according to sidebar navigation in admin web page.
+        :return: control fields
+        """
+        return list(self._control_fields.keys())
 
-    def _logout(self):
-        self.switch_to_frame(Frame.MENU)
-        logout_link_details = (By.XPATH, "//div[@id='logout']//a[@class='menulink']")
-        self.wait_until_element_is_present(*logout_link_details, exception=LogoutError)
-        logout_link = self.webdriver.find_element(*logout_link_details)
-        logout_link.click()
-        self.wait_until_alert_is_present()
-        alert = self.webdriver.switch_to.alert
-        alert.accept()
+    def _destroy_control_fields(self) -> None:
+        del self._control_fields
 
-    def switch_to_frame(self, frame_name):
-        self.switch_to_default_content()
-        frame_details = (By.XPATH, f"//frame[@name='{frame_name.value}']")
-        self.wait_until_element_is_present(*frame_details)
-        frame = self.webdriver.find_element(*frame_details)
-        self.webdriver.switch_to.frame(frame)
-        self._active_frame = frame_name
-
-    def switch_to_default_content(self):
-        self.webdriver.switch_to.default_content()
-        self._active_frame = None
-
-    def wait_until_element_is_present(self, method, query, timeout=4, close_browser=True, exception=TpLinkSwitchError):
-        try:
-            WebDriverWait(self.webdriver, int(timeout)).until(EC.presence_of_element_located((method, query)))
-        except (TimeoutException, Exception):
-            if close_browser:
-                self.webdriver.quit()
-            raise exception(f'Element identified as "({method}, {query})" not present after {timeout} seconds')
-
-    def wait_until_element_is_visible(self, method, query, timeout=4, close_browser=True, exception=TpLinkSwitchError):
-        try:
-            WebDriverWait(self.webdriver, int(timeout)).until(EC.visibility_of_element_located((method, query)))
-        except (TimeoutException, Exception):
-            if close_browser:
-                self.webdriver.quit()
-            raise exception(f'Element identified as "({method}, {query})" not visible after {timeout} seconds')
-
-    def wait_until_alert_is_present(self, timeout=4, close_browser=True, exception=TpLinkSwitchError):
-        try:
-            WebDriverWait(self.webdriver, int(timeout)).until(EC.alert_is_present())
-        except (TimeoutException, Exception):
-            if close_browser:
-                self.webdriver.quit()
-            raise exception(f'Alert not present after {timeout} seconds')  # Change error
-
-
-
-
-        #
-    # def system_info(self):
-    #     pass
-    #
-    # def ip_setting(self):
-    #     pass
-    #
-    # def led_on(self):
-    #     pass
-    #
-    # def led_off(self):
-    #     pass
-    #
-    # def user_account(self):
-    #     pass
-    #
-    # def config_backup(self):
-    #     pass
-    #
-    # def config_restore(self):
-    #     pass
-    #
-    # def system_reboot(self):
-    #     pass
-    #
-    # def system_reset(self):
-    #     pass
-    #
-    # def firmware_upgrade(self):
-    #     pass
-    #
-    # ###
-    #
-    # def port_setting_info(self):
-    #     pass
-    #
-    # def port_setting(self):
-    #     pass
-    #
-    # def IGMP_snooping_info(self):
-    #     pass
-    #
-    # def IGMP_snooping(self):
-    #     pass
-    #
-    # def static_LAG_setting_info(self):
-    #     pass
-    #
-    # def static_LAG_setting(self):
-    #     pass
-
-    ###
-
-
-
-
+    def __del__(self) -> None:
+        self._destroy_control_fields()
