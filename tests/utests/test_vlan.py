@@ -7,7 +7,7 @@ from ddt import ddt, data, unpack
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src'))
 
 from switch_TL_SG108PE.control_fields.vlan import VLANControlField
-from switch_TL_SG108PE.exceptions import WrongVlanIdError, WrongNumberOfPortsError, VlanIdError, PortIdError
+from switch_TL_SG108PE.exceptions import WrongNumberOfPortsException, VlanIdException, PortIdException
 
 
 @ddt
@@ -29,9 +29,9 @@ class TestVLAN(unittest.TestCase):
 
     @data(
         {'port_id': 1, 'error': None},
-        {'port_id': 9, 'error': PortIdError},
-        {'port_id': 0, 'error': PortIdError},
-        {'port_id': '3', 'error': PortIdError}
+        {'port_id': 9, 'error': PortIdException},
+        {'port_id': 0, 'error': PortIdException},
+        {'port_id': '3', 'error': PortIdException}
     )
     @unpack
     @patch('switch_TL_SG108PE.control_fields.vlan.Select', Mock())
@@ -57,12 +57,12 @@ class TestVLAN(unittest.TestCase):
 
     @data(
         {'vlan_id': 2, 'ports': [1, 2, 3], 'error': None},
-        {'vlan_id': 1, 'ports': [], 'error': WrongVlanIdError},
-        {'vlan_id': 9, 'ports': [], 'error': WrongVlanIdError},
-        {'vlan_id': 4, 'ports': [1, 2, 3, 4, 5, 6, 7, 8], 'error': WrongNumberOfPortsError},
-        {'vlan_id': '4', 'ports': [3], 'error': VlanIdError},
-        {'vlan_id': 6, 'ports': [-1], 'error': PortIdError},
-        {'vlan_id': 7, 'ports': ['1'], 'error': PortIdError},
+        {'vlan_id': 1, 'ports': [], 'error': VlanIdException},
+        {'vlan_id': 9, 'ports': [], 'error': VlanIdException},
+        {'vlan_id': 4, 'ports': [1, 2, 3, 4, 5, 6, 7, 8], 'error': WrongNumberOfPortsException},
+        {'vlan_id': '4', 'ports': [3], 'error': VlanIdException},
+        {'vlan_id': 6, 'ports': [-1], 'error': PortIdException},
+        {'vlan_id': 7, 'ports': ['1'], 'error': PortIdException},
     )
     @unpack
     def test_add_port_based_vlan(self, vlan_id, ports, error):
@@ -82,7 +82,7 @@ class TestVLAN(unittest.TestCase):
         },
         {
             'vlan_id': '4',
-            'error': VlanIdError,
+            'error': VlanIdException,
             'port_based_vlan_configuration': None
         }
     )

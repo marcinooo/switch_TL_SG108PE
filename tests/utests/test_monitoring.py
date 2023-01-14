@@ -7,7 +7,7 @@ from ddt import ddt, data, unpack
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src'))
 
 from switch_TL_SG108PE.control_fields.monitoring import MonitoringControlField
-from switch_TL_SG108PE.exceptions import PortIdError
+from switch_TL_SG108PE.exceptions import PortIdException
 
 @ddt
 class TestMonitoring(unittest.TestCase):
@@ -60,22 +60,22 @@ class TestMonitoring(unittest.TestCase):
         {
             'mirrored_ports': ['1'],
             'mirroring_port': 3,
-            'error': PortIdError,
+            'error': PortIdException,
         },
         {
             'mirrored_ports': [0],
             'mirroring_port': 1,
-            'error': PortIdError,
+            'error': PortIdException,
         },
         {
             'mirrored_ports': [1],
             'mirroring_port': '4',
-            'error': PortIdError,
+            'error': PortIdException,
         },
         {
             'mirrored_ports': [1],
             'mirroring_port': 9,
-            'error': PortIdError,
+            'error': PortIdException,
         }
     )
     @unpack

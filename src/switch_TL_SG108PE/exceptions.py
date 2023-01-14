@@ -1,76 +1,69 @@
+"""Contains exceptions."""
 
 
-class TpLinkSwitchError(Exception):
-    pass
+class TpLinkSwitchException(Exception):
+    """Base library exception."""
 
 
-class SwitchManagerNotConnectedException(TpLinkSwitchError):
+class SwitchManagerNotConnectedException(TpLinkSwitchException):
     """Thrown when SwitchManager was not connected with switch admin page."""
 
 
-class LoginException(TpLinkSwitchError):
+class LoginException(TpLinkSwitchException):
     """Thrown when login failed."""
 
 
-class LogoutException(TpLinkSwitchError):
+class LogoutException(TpLinkSwitchException):
     """Thrown when logout failed."""
 
 
-class InvalidDescriptionException(TpLinkSwitchError):
+class InvalidDescriptionException(TpLinkSwitchException):
     """Thrown when settings device description failed."""
 
 
-class InvalidUserAccountDetailsException(TpLinkSwitchError):
+class InvalidUserAccountDetailsException(TpLinkSwitchException):
     """Thrown when setting new user account details failed."""
 
 
-class DHCPSettingsEnabledError(TpLinkSwitchError):
-    pass
+class DHCPSettingsEnabledException(TpLinkSwitchException):
+    """Thrown when getting host from DHCP is enabled and user try set own host."""
 
 
-class LAGPortError(TpLinkSwitchError):
-    pass
+class LAGPortException(TpLinkSwitchException):
+    """Thrown when port is invalid to add to LAG group."""
 
 
-class UnknownControlFieldError(TpLinkSwitchError):
-    pass
+class UnknownControlFieldException(TpLinkSwitchException):
+    """Thrown when user entered wrong control field."""
 
 
-class PortIsNotAvailableError(TpLinkSwitchError):
-    pass
+class PortIsNotAvailableError(TpLinkSwitchException):
+    """Thrown when port is not available to select."""
 
 
-class MtuVlanIsNotEnabled(TpLinkSwitchError):
-    pass
+class MtuVlanIsNotEnabled(TpLinkSwitchException):
+    """Thrown when mtu configuration is not enabled."""
 
 
-class VlanConfigurationIsNotEnabledError(TpLinkSwitchError):
-    pass
+class VlanConfigurationIsNotEnabledException(TpLinkSwitchException):
+    """Thrown when configuration of VLAN is not enabled in given section."""
 
 
-class WrongNumberOfPortsError(TpLinkSwitchError):
-    pass
+class WrongNumberOfPortsException(TpLinkSwitchException):
+    """Thrown when user passed incorrect number of ports."""
 
 
-class VLANdoesNotExist(TpLinkSwitchError):
-    pass
+class VlanIdException(TpLinkSwitchException):
+    """Thrown when user passed wrong VLAN id."""
 
 
-class WrongVlanIdError(TpLinkSwitchError):
-    pass
+class PortIdException(TpLinkSwitchException):
+    """Thrown when user passed wrong port id."""
 
 
-class VlanIdError(TpLinkSwitchError):  # TODO: merge witch above
-    pass
+class LagIdException(TpLinkSwitchException):
+    """Thrown when user passed wrong lag id."""
 
 
-class PortIdError(TpLinkSwitchError):
-    pass
-
-
-class LagIdError(TpLinkSwitchError):
-    pass
-
-
-class OptionDisabled(TpLinkSwitchError):  # TODO: Change name
-    pass
+class OptionDisabledException(TpLinkSwitchException):
+    """Thrown when option to select is disabled."""

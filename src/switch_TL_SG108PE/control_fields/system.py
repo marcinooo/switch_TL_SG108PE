@@ -1,11 +1,12 @@
 """Contains code to manage system section from menu tab."""
 
+import ipaddress
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
 from .control_field import ControlField
 from ..utils import Frame
-from ..exceptions import InvalidDescriptionException, InvalidUserAccountDetailsException, DHCPSettingsEnabledError
+from ..exceptions import InvalidDescriptionException, InvalidUserAccountDetailsException, DHCPSettingsEnabledException
 
 
 class SystemControlField(ControlField):
@@ -62,8 +63,8 @@ class SystemControlField(ControlField):
     @ControlField.login_required
     def ip_settings(self) -> dict[str, str]:
         """
-        Gets ip settings. It shows ip assigned to switch in network.
-        :return: information about ip, mask, gateway
+        Gets host settings. It shows host assigned to switch in network.
+        :return: information about host, mask, gateway
         """
         ip_info = {}
         self.open_tab(self.MENU_SECTION, 'IP Setting')
@@ -84,7 +85,7 @@ class SystemControlField(ControlField):
     @ControlField.login_required
     def enable_dhcp_configuration(self) -> bool:
         """
-        Enables the function of automatic ip retrieval from dhcp server in the network.
+        Enables the function of automatic host retrieval from dhcp server in the network.
         :return: True if settings was successfully enabled, otherwise False
         """
         return self._select_dhcp_option_in_ip_settings('Enable')
@@ -92,8 +93,8 @@ class SystemControlField(ControlField):
     @ControlField.login_required
     def disable_dhcp_configuration(self) -> bool:
         """
-        Disables the function of automatic ip retrieval from dhcp server in the network.
-        User should configure ip manually.
+        Disables the function of automatic host retrieval from dhcp server in the network.
+        User should configure host manually.
         :return: True if settings was successfully disabled, otherwise False
         """
         return self._select_dhcp_option_in_ip_settings('Disable')
@@ -101,17 +102,19 @@ class SystemControlField(ControlField):
     @ControlField.login_required
     def set_ip(self, ip_address: str, subnet_mask: str, default_gateway: str) -> bool:
         """
-        Sets switch ip, netmask, gateway. It works only if dhcp configuration is disabled.
-        :param ip_address: switch ip
-        :param subnet_mask: mask dedicated for ip
+        Sets switch host, netmask, gateway. It works only if dhcp configuration is disabled.
+        :param ip_address: switch host
+        :param subnet_mask: mask dedicated for host
         :param default_gateway: gateway for switch network
-        :return: True if ip details was configured successfully, otherwise False
+        :return: True if host details was configured successfully, otherwise False
         """
-        # TODO: Add ips validation
+        ipaddress.ip_address(ip_address)
+        ipaddress.ip_address(subnet_mask)
+        ipaddress.ip_address(default_gateway)
         ip_settings = self.ip_settings()
         if ip_settings['DHCP Setting'] != 'disable':
-            raise DHCPSettingsEnabledError('DHCP settings are enabled. '
-                                           'Disable it to set own ip. Use "disable_dhcp_settings()" method.')
+            raise DHCPSettingsEnabledException('DHCP settings are enabled. '
+                                           'Disable it to set own host. Use "disable_dhcp_settings()" method.')
         self._enter_text_value_in_input_filed(ip_address, 'txt_addr')
         self._enter_text_value_in_input_filed(subnet_mask, 'txt_mask')
         self._enter_text_value_in_input_filed(default_gateway, 'txt_gateway')

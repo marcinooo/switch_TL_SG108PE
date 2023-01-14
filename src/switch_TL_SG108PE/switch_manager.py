@@ -12,38 +12,43 @@ from .control_fields.monitoring import MonitoringControlField
 from .control_fields.vlan import VLANControlField
 from .control_fields.qos import QoSControlField
 from .control_fields.poe import PoEControlField
-from .exceptions import SwitchManagerNotConnectedException, UnknownControlFieldError
+from .exceptions import SwitchManagerNotConnectedException, UnknownControlFieldException
 
 
 class SwitchManager:
     """Creates object to control switch TL-SG108PE."""
 
     def __init__(self) -> None:
-        self.ip = None
+        self.host = None
         self.login = None
         self.password = None
         self.is_connected = False
         self._web_controller = None
         self._control_fields = {}
 
-    def connect(self, ip: str, login: str, password: str, webdriver: WebDriver = None) -> None:
+    # pylint: disable=too-many-arguments
+    def connect(self, host: str, login: str, password: str, headless: bool = True, webdriver: WebDriver = None) -> None:
         """
         Connects SwitchManager to admin web page of switch.
-        :param ip: ip address of switch
+        :param host: host address of switch
         :param login: name of login
         :param password: secret password
+        :param headless: if True browser will be opened in background, otherwise browser will be visible
         :param webdriver: custom webdriver object
         :return: None
         """
-        self.ip = ip  # TODO: checking ip
+        self.host = host
         self.login = login
         self.password = password
         if webdriver is None:
-            # options = wd.ChromeOptions()  # TODO: add option to open web browser in background
-            # options.add_argument("--headless")
-            # webdriver = wd.Chrome(chrome_options=options)
-            webdriver = wd.Chrome()
-        self._web_controller = WebController(ip, login, password, webdriver)
+            if headless:
+                options = wd.ChromeOptions()
+                options.add_argument("--headless")
+                options.add_experimental_option('excludeSwitches', ['enable-logging'])
+                webdriver = wd.Chrome(options=options)
+            else:
+                webdriver = wd.Chrome()
+        self._web_controller = WebController(host, login, password, webdriver)
         self._web_controller.login()
         self._control_fields = {
             'system': SystemControlField(self._web_controller),
@@ -62,7 +67,7 @@ class SwitchManager:
         """
         self._web_controller.logout()
         self._web_controller.quit()
-        self.ip = None
+        self.host = None
         self.login = None
         self.password = None
         self._web_controller = None
@@ -78,10 +83,11 @@ class SwitchManager:
         :return: given control field
         """
         if control_field not in self._control_fields:
-            raise UnknownControlFieldError(f'"{control_field}" control filed is not recognised. '
+            raise UnknownControlFieldException(f'"{control_field}" control filed is not recognised. '
                                            f'Possible control fields: {", ".join(self._control_fields.keys())}')
         if not self.is_connected:
-            raise SwitchManagerNotConnectedException('Switch manager is not connected. Please call connect() method first.')
+            raise SwitchManagerNotConnectedException(
+                'Switch manager is not connected. Please call connect() method first.')
         return self._control_fields[control_field]
 
     def get_control_fields(self) -> List[str]:

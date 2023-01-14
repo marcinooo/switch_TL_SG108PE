@@ -3,7 +3,7 @@
 from enum import Enum
 
 from .port import PORT_LABEL, LAG_LABEL
-from .exceptions import VlanIdError, PortIdError, LagIdError
+from .exceptions import VlanIdException, PortIdException, LagIdException
 
 
 class Frame(Enum):
@@ -39,7 +39,7 @@ def validate_vlan_id(vlan_id: int) -> None:
     :return: None
     """
     if not isinstance(vlan_id, int):
-        raise VlanIdError('VLAN ID should be an integer')
+        raise VlanIdException('VLAN ID should be an integer')
 
 
 def validate_port_id(port_id: int) -> None:
@@ -49,9 +49,9 @@ def validate_port_id(port_id: int) -> None:
     :return: None
     """
     if not isinstance(port_id, int):
-        raise PortIdError('Port ID should be an integer')
-    if port_id < 1 or port_id > 8:
-        raise PortIdError('Port ID must be in range of 1-8.')
+        raise PortIdException('Port ID should be an integer')
+    if not 1 <= port_id <= 8:
+        raise PortIdException('Port ID must be in range of 1-8.')
 
 
 def validate_lag_id(lag_id: int) -> None:
@@ -61,6 +61,6 @@ def validate_lag_id(lag_id: int) -> None:
     :return: None
     """
     if not isinstance(lag_id, int):
-        raise LagIdError('LAG ID should be an integer')
-    if lag_id < 1 or lag_id > 2:  # TODO: Make it more readable
-        raise LagIdError('LAG ID must be in range of 1-2.')
+        raise LagIdException('LAG ID should be an integer')
+    if not 1 <= lag_id <= 2:
+        raise LagIdException('LAG ID must be in range of 1-2.')

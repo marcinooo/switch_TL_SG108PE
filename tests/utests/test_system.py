@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src'))
 
 from switch_TL_SG108PE.control_fields.system import SystemControlField
-from switch_TL_SG108PE.exceptions import DHCPSettingsEnabledError
+from switch_TL_SG108PE.exceptions import DHCPSettingsEnabledException
 
 
 class TestSystem(unittest.TestCase):
@@ -44,7 +44,7 @@ class TestSystem(unittest.TestCase):
 
     def test_set_ip_fails_when_dhcp_configuration_is_enabled(self):
         self.assertRaises(
-            DHCPSettingsEnabledError,
+            DHCPSettingsEnabledException,
             lambda: self.system.set_ip(ip_address='0.0.0.0', subnet_mask='1.1.1.1', default_gateway='2.2.2.2')
         )
 

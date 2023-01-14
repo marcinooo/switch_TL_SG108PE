@@ -7,8 +7,8 @@ from selenium.webdriver.support.ui import Select
 from .control_field import ControlField
 from ..utils import Frame, validate_vlan_id, validate_port_id, get_port_label
 from ..port import IEEE8021QPort
-from ..exceptions import (MtuVlanIsNotEnabled, VlanConfigurationIsNotEnabledError, WrongNumberOfPortsError,
-                          VLANdoesNotExist, WrongVlanIdError, PortIdError)
+from ..exceptions import (MtuVlanIsNotEnabled, VlanConfigurationIsNotEnabledException, WrongNumberOfPortsException,
+                          VlanIdException, PortIdException)
 
 
 class VLANControlField(ControlField):
@@ -63,7 +63,7 @@ class VLANControlField(ControlField):
         is_mtu_vlan_configuration_enabled = self._is_vlan_configuration_enabled('mtu_en')
         if not is_mtu_vlan_configuration_enabled:
             raise MtuVlanIsNotEnabled('MTU VLAN should be enabled before setting uplink port.')
-        select_port_details = (By.XPATH, f"//div[@id='div_sec_title']//select[@name='uplinkPort']")
+        select_port_details = (By.XPATH, "//div[@id='div_sec_title']//select[@name='uplinkPort']")
         self.web_controller.wait_until_element_is_present(*select_port_details)
         select_port = Select(self.web_controller.find_element(*select_port_details))
         select_port.select_by_visible_text(port.value)
@@ -87,7 +87,7 @@ class VLANControlField(ControlField):
         if not configuration_enabled:
             return port_based_vlan_configuration
         vlan_ports_tds_details = (By.XPATH,
-                                  f"//div[not(@id='div_sec_title')]/form/table/tbody/tr[not(@class='TABLE_HEAD')]/td")
+                                  "//div[not(@id='div_sec_title')]/form/table/tbody/tr[not(@class='TABLE_HEAD')]/td")
         self.web_controller.wait_until_element_is_present(*vlan_ports_tds_details)
         vlan_ports_tds = self.web_controller.find_elements(*vlan_ports_tds_details)
         vlan_ports_tds = vlan_ports_tds[18:-3]
@@ -123,14 +123,14 @@ class VLANControlField(ControlField):
         validate_vlan_id(vlan_id)
         for port in ports:
             validate_port_id(port)
-        if vlan_id < 2 or vlan_id > 8:
-            raise WrongVlanIdError('VLAN ID must be in range of 2-8!')
+        if not 2 <= vlan_id <= 8:
+            raise VlanIdException('VLAN ID must be in range of 2-8!')
         if len(ports) > 7:
-            raise WrongNumberOfPortsError("Can't remove all ports from VLAN 1.")
+            raise WrongNumberOfPortsException("Can't remove all ports from VLAN 1.")
         self.open_tab(self.MENU_SECTION, 'Port Based VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         if not self._is_vlan_configuration_enabled('pvlan_en'):
-            raise VlanConfigurationIsNotEnabledError(
+            raise VlanConfigurationIsNotEnabledException(
                 'Port VLAN configuration should be enabled before reading vlan details.')
         self._fill_add_port_base_vlan_form(vlan_id, ports)
         apply_button_details = (By.XPATH, "//a[@class='BTN']/input[@name='pvlan_add']")
@@ -148,9 +148,9 @@ class VLANControlField(ControlField):
         self.open_tab(self.MENU_SECTION, 'Port Based VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         if not self._is_vlan_configuration_enabled('pvlan_en'):
-            raise VlanConfigurationIsNotEnabledError('Port VLAN should be enabled before reading vlan details.')
-        if not any([vlan['VLAN ID'] == str(vlan_id) for vlan in self.port_based_vlan_configuration()['VLANs']]):
-            raise VLANdoesNotExist(f'VLAN {vlan_id} is not added in configuration.')
+            raise VlanConfigurationIsNotEnabledException('Port VLAN should be enabled before reading vlan details.')
+        if not any(vlan['VLAN ID'] == str(vlan_id) for vlan in self.port_based_vlan_configuration()['VLANs']):
+            raise VlanIdException(f'VLAN {vlan_id} is not added in configuration.')
         delete_vlan_checkbox_details = (By.XPATH, f"//input[@id='vlan_{vlan_id}']")
         self.web_controller.wait_until_element_is_present(*delete_vlan_checkbox_details)
         delete_vlan_checkbox = self.web_controller.find_element(*delete_vlan_checkbox_details)
@@ -216,15 +216,15 @@ class VLANControlField(ControlField):
         validate_vlan_id(vlan_id)
         for port in ports:
             if not isinstance(port, IEEE8021QPort):
-                raise PortIdError('Port should be an IEEE8021QPort object')
-        if vlan_id < 1 or vlan_id > 4094:
-            raise WrongVlanIdError('VLAN ID must be in range of 1-4094!')
+                raise PortIdException('Port should be an IEEE8021QPort object')
+        if not 1 <= vlan_id <= 4094:
+            raise VlanIdException('VLAN ID must be in range of 1-4094!')
         if len(ports) > 8:
-            raise WrongNumberOfPortsError("Current switch has only 8 ports.")
+            raise WrongNumberOfPortsException("Current switch has only 8 ports.")
         self.open_tab(self.MENU_SECTION, '802.1Q VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         if not self._is_vlan_configuration_enabled('qvlan_en'):
-            raise VlanConfigurationIsNotEnabledError(
+            raise VlanConfigurationIsNotEnabledException(
                 '802.1Q VLAN configuration should be enabled before reading vlan details.')
         self._enter_value_in_vlan_input('t_vid', str(vlan_id))
         if vlan_name:
@@ -251,10 +251,10 @@ class VLANControlField(ControlField):
         self.web_controller.switch_to_frame(Frame.MAIN)
         vlan_configuration = self.ieee_802_1q_vlan_configuration()
         if vlan_configuration['802.1Q VLAN Configuration'] != 'Enable':
-            raise VlanConfigurationIsNotEnabledError(
+            raise VlanConfigurationIsNotEnabledException(
                 '802.1Q VLAN configuration should be enabled before deleting vlan.')
-        if not any([vlan['VLAN ID'] == str(vlan_id) for vlan in vlan_configuration['VLANs']]):
-            raise VLANdoesNotExist(f'VLAN {vlan_id} is not added in configuration.')
+        if not any(vlan['VLAN ID'] == str(vlan_id) for vlan in vlan_configuration['VLANs']):
+            raise VlanIdException(f'VLAN {vlan_id} is not added in configuration.')
         delete_vlan_checkbox_details = (By.XPATH, f"//input[@id='vlan_{vlan_id}']")
         self.web_controller.wait_until_element_is_present(*delete_vlan_checkbox_details)
         delete_vlan_checkbox = self.web_controller.find_element(*delete_vlan_checkbox_details)
@@ -286,7 +286,7 @@ class VLANControlField(ControlField):
         return enable_input.is_selected()
 
     def _get_current_uplink_port(self) -> str:
-        current_uplink_port_div_details = (By.XPATH, f"//div[@id='div_sec_title']//td/div")
+        current_uplink_port_div_details = (By.XPATH, "//div[@id='div_sec_title']//td/div")
         self.web_controller.wait_until_element_is_present(*current_uplink_port_div_details)
         current_uplink_port_div = self.web_controller.find_element(*current_uplink_port_div_details)
         return current_uplink_port_div.text

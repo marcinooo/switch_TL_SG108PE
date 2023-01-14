@@ -13,11 +13,17 @@ Library to control network switch tp-link TL-SG108PE
 
 .. contents ::
 
+
 Description
 ===========
 
+Switch tp-link TL-SG108PE:
 
-Switch can be control from Python code. It implements methods to manage main switch settings.
+.. image:: switch_tp_link_TL_SG108PE.jpg
+    :alt: tp-link TL-SG108PE
+    :scale: 20%
+
+Above switch can be control from Python code. It implements methods to manage main switch settings.
 Methods are divided in sections:
 
 - System:
@@ -68,13 +74,6 @@ Methods are divided in sections:
     - ``add_ieee_802_1q_vlan(vlan_id, ports, vlan_name)``
     - ``remove_ieee_802_1q_vlan(vlan_id)``
 
-Switch tp-link TL-SG108PE:
-
-.. image:: switch_tp_link_TL_SG108PE.jpg
-    :alt: tp-link TL-SG108PE
-    :scale: 20%
-
-|
 
 Documentation
 -------------
@@ -124,6 +123,7 @@ Install from PyPI:
 Install from github:
 
 ``$ pip install git+https://github.com/marcinooo/switch_TL_SG108PE``
+
 
 License
 =======

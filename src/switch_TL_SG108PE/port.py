@@ -5,7 +5,7 @@ from typing import Optional
 from dataclasses import dataclass
 
 
-class PORT_LABEL(Enum):
+class PORT_LABEL(Enum):  # pylint: disable=invalid-name
     """Labels of ports."""
     PORT_1 = 'Port 1'
     PORT_2 = 'Port 2'
@@ -17,7 +17,7 @@ class PORT_LABEL(Enum):
     PORT_8 = 'Port 8'
 
 
-class LAG_LABEL(Enum):
+class LAG_LABEL(Enum):  # pylint: disable=invalid-name
     """Labels of LAG."""
     LAG_1 = 'LAG 1'
     LAG_2 = 'LAG 2'
@@ -39,7 +39,7 @@ class SPEED(Enum):
     S1000MF = '1000MF'
 
 
-class FLOW_CONTROL(Enum):
+class FLOW_CONTROL(Enum):  # pylint: disable=invalid-name
     """Status of flow control for given port."""
     ON = 'On'
     OFF = 'Off'

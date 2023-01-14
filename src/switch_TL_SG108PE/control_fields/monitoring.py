@@ -29,7 +29,7 @@ class MonitoringControlField(ControlField):
             self.refresh_port_statistics()
         port_statistics = {}
         ports_rows_details = (
-            By.XPATH, f"//table[@class='BORDER']/tbody/tr[not(@class='TD_FIRST_ROW')]/td[@class='TABLE_HEAD_BOTTOM']"
+            By.XPATH, "//table[@class='BORDER']/tbody/tr[not(@class='TD_FIRST_ROW')]/td[@class='TABLE_HEAD_BOTTOM']"
         )
         self.web_controller.wait_until_element_is_present(*ports_rows_details)
         ports_rows = self.web_controller.find_elements(*ports_rows_details)
@@ -117,6 +117,10 @@ class MonitoringControlField(ControlField):
 
     @ControlField.login_required
     def disable_port_mirroring(self) -> bool:
+        """
+        Disables port mirroring.
+        :return: True if port mirroring was deleted successfully, otherwise False
+        """
         self.open_tab(self.MENU_SECTION, 'Port Mirror')
         self.web_controller.switch_to_frame(Frame.MAIN)
         self._manage_status_of_mirroring_port('Disable')

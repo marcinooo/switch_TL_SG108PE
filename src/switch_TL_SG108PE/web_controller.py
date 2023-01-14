@@ -9,15 +9,16 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
-from .exceptions import LoginException, LogoutException, TpLinkSwitchError
+from .exceptions import LoginException, LogoutException, TpLinkSwitchException
 from .utils import Frame
 
 
 class WebController:
     """Creates object to control admin web page of switch via selenium library."""
 
-    def __init__(self, ip, username: str, password: str, webdriver: WebDriver) -> None:
-        self.ip = ip
+    # pylint: disable=invalid-name
+    def __init__(self, host, username: str, password: str, webdriver: WebDriver) -> None:
+        self.host = host
         self.username = username
         self.password = password
         self.webdriver = webdriver
@@ -28,10 +29,10 @@ class WebController:
         Login user in admin web page of switch.
         :return: None
         """
-        self.webdriver.get(f'http://{self.ip}')
+        self.webdriver.get(f'http://{self.host}')
         try:
             self.wait_until_element_is_present(By.ID, 'logon')
-        except TpLinkSwitchError:
+        except TpLinkSwitchException:
             self.logout()
         self.wait_until_element_is_present(By.ID, 'username', exception=LoginException)
         self.webdriver.find_element(By.ID, 'username').send_keys(self.username)
@@ -124,7 +125,7 @@ class WebController:
         ActionChains(self.webdriver).key_down(Keys.CONTROL).click(element).key_up(Keys.CONTROL).perform()
 
     def wait_until_element_is_present(self, method: By, query: str, timeout: int = 4,
-                                      exception=TpLinkSwitchError) -> None:
+                                      exception=TpLinkSwitchException) -> None:
         """
         Waits until given element is present on web page.
         If element wasn't be found on web page an error will be raised.
@@ -137,10 +138,11 @@ class WebController:
         try:
             WebDriverWait(self.webdriver, int(timeout)).until(EC.presence_of_element_located((method, query)))
         except TimeoutException:
-            raise exception(f'Element identified as "({method}, {query})" not present after {timeout} seconds')
+            raise exception(f'Element identified as "({method}, {query})" not present after {timeout} seconds') \
+                from None
 
     def wait_until_element_is_visible(self, method: By, query: str, timeout: int = 6,
-                                      exception=TpLinkSwitchError) -> None:
+                                      exception=TpLinkSwitchException) -> None:
         """
         Waits until given element is visible on web page.
         If element wasn't be found on web page an error will be raised.
@@ -153,9 +155,10 @@ class WebController:
         try:
             WebDriverWait(self.webdriver, int(timeout)).until(EC.visibility_of_element_located((method, query)))
         except TimeoutException:
-            raise exception(f'Element identified as "({method}, {query})" not visible after {timeout} seconds')
+            raise exception(f'Element identified as "({method}, {query})" not visible after {timeout} seconds') \
+                from None
 
-    def wait_until_alert_is_present(self, timeout: int = 4, exception=TpLinkSwitchError) -> None:
+    def wait_until_alert_is_present(self, timeout: int = 4, exception=TpLinkSwitchException) -> None:
         """
         Waits until given alert is present on web page.
         If alert wasn't be found on web page an error will be raised.
@@ -166,4 +169,4 @@ class WebController:
         try:
             WebDriverWait(self.webdriver, int(timeout)).until(EC.alert_is_present())
         except TimeoutException:
-            raise exception(f'Alert not present after {timeout} seconds')
+            raise exception(f'Alert not present after {timeout} seconds') from None

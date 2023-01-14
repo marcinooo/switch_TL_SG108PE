@@ -4,7 +4,7 @@ import unittest
 from tests.atests.utils import set_up_environment_variables
 
 from switch_TL_SG108PE.switch_manager import SwitchManager
-from switch_TL_SG108PE.exceptions import MtuVlanIsNotEnabled, VlanConfigurationIsNotEnabledError
+from switch_TL_SG108PE.exceptions import MtuVlanIsNotEnabled, VlanConfigurationIsNotEnabledException
 from switch_TL_SG108PE.port import IEEE8021QPort
 
 
@@ -71,7 +71,7 @@ class TestSystem(unittest.TestCase):
 
         # Test invalid adding
         self.assertRaises(
-            VlanConfigurationIsNotEnabledError,
+            VlanConfigurationIsNotEnabledException,
             lambda: self.vlan.add_port_based_vlan(3, [8])
         )
 
@@ -110,6 +110,6 @@ class TestSystem(unittest.TestCase):
 
         # Test invalid adding
         self.assertRaises(
-            VlanConfigurationIsNotEnabledError,
+            VlanConfigurationIsNotEnabledException,
             lambda: self.vlan.add_ieee_802_1q_vlan(4, [IEEE8021QPort(port_id=8, tagged=False)])
         )

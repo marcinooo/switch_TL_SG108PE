@@ -4,10 +4,10 @@ from typing import Callable
 from selenium.webdriver.common.by import By
 
 from ..utils import Frame
-from ..exceptions import TpLinkSwitchError
+from ..exceptions import TpLinkSwitchException
 
 
-class ControlField:  # TODO: As meta
+class ControlField:
     """Creates object to control base actions on switch page."""
 
     def __init__(self, web_controller):
@@ -54,15 +54,19 @@ class ControlField:  # TODO: As meta
         confirmation_alert_details = (By.XPATH, "//span[contains(text(), 'Operation successful.')]")
         try:
             self.web_controller.wait_until_element_is_visible(*confirmation_alert_details)
-        except TpLinkSwitchError:
+        except TpLinkSwitchException:
             return False
         return True
 
-    def get_alert_text(self):
+    def get_alert_text(self) -> str:
+        """
+        Returns alert text.
+        :return: text
+        """
         alert_details = (By.XPATH, "//span[@id='sp_tip_svr']/span[@class='TIP_CONTENT']")
         try:
             self.web_controller.wait_until_element_is_visible(*alert_details, timeout=5)
-        except TpLinkSwitchError:
+        except TpLinkSwitchException:
             return ''
         return self.web_controller.find_element(*alert_details).text
 

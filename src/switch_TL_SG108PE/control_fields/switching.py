@@ -7,7 +7,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from .control_field import ControlField
 from ..utils import Frame, get_port_label, get_lag_label, validate_port_id, validate_lag_id
 from ..port import STATUS, SPEED, FLOW_CONTROL
-from ..exceptions import LAGPortError, OptionDisabled, TpLinkSwitchError # TODO: Camelcase
+from ..exceptions import LAGPortException, OptionDisabledException
 
 
 class SwitchingControlField(ControlField):
@@ -24,7 +24,7 @@ class SwitchingControlField(ControlField):
         self.open_tab(self.MENU_SECTION, 'Port Setting')
         self.web_controller.switch_to_frame(Frame.MAIN)
         ports_settings = {}
-        ports_rows_details = (By.XPATH, f"//table[@class='BORDER']/tbody/tr/td[@class='TABLE_HEAD_BOTTOM']")
+        ports_rows_details = (By.XPATH, "//table[@class='BORDER']/tbody/tr/td[@class='TABLE_HEAD_BOTTOM']")
         self.web_controller.wait_until_element_is_present(*ports_rows_details)
         ports_rows = self.web_controller.find_elements(*ports_rows_details)
         for i in range(0, 48, 6):
@@ -53,16 +53,16 @@ class SwitchingControlField(ControlField):
         self.web_controller.switch_to_frame(Frame.MAIN)
         port_select_details = (By.XPATH, "//select[@id='portSel']")
         if not self._select_port_setting(*port_select_details, port_label.value):
-            raise OptionDisabled(f'Option {port_label} is disabled.')
+            raise OptionDisabledException(f'Option {port_label} is disabled.')
         status_select_details = (By.XPATH, "//select[@name='state']")
         if not self._select_port_setting(*status_select_details, status.value):
-            raise OptionDisabled(f'Option {status} is disabled.')
+            raise OptionDisabledException(f'Option {status} is disabled.')
         speed_select_details = (By.XPATH, "//select[@name='speed']")
         if not self._select_port_setting(*speed_select_details, speed.value):
-            raise OptionDisabled(f'Option {speed} is disabled.')
+            raise OptionDisabledException(f'Option {speed} is disabled.')
         flow_control_select_details = (By.XPATH, "//select[@name='flowcontrol']")
         if not self._select_port_setting(*flow_control_select_details, flow_control.value):
-            raise OptionDisabled(f'Option {flow_control} is disabled.')
+            raise OptionDisabledException(f'Option {flow_control} is disabled.')
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='apply']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
         return self.wait_for_success_alert()
@@ -151,7 +151,7 @@ class SwitchingControlField(ControlField):
         lag_settings = {}
         lag_td_details = (
             By.XPATH,
-            f"//form[@name='port_trunk_display']/table[@class='BORDER']/tbody/tr/td[not(@class='TD_FIRST_COL')]"
+            "//form[@name='port_trunk_display']/table[@class='BORDER']/tbody/tr/td[not(@class='TD_FIRST_COL')]"
         )
         self.web_controller.wait_until_element_is_present(*lag_td_details)
         lag_tds = self.web_controller.find_elements(*lag_td_details)
@@ -172,11 +172,11 @@ class SwitchingControlField(ControlField):
         for port in ports:
             validate_port_id(port)
         if not 2 <= len(ports) <= 4:
-            raise LAGPortError('Each LAG group has up to 4 port members and has at least two port members.')
+            raise LAGPortException('Each LAG group has up to 4 port members and has at least two port members.')
         if lag_id == 1 and not all(map(lambda p: p in [1, 2, 3, 4], ports)):
-            raise LAGPortError('Port can not be selected, available ports of LAG 1: port 1 -- port 4')
+            raise LAGPortException('Port can not be selected, available ports of LAG 1: port 1 -- port 4')
         if lag_id == 2 and not all(map(lambda p: p in [5, 6, 7, 8], ports)):
-            raise LAGPortError('Port can not be selected, available ports of LAG 1: port 5 -- port 8')
+            raise LAGPortException('Port can not be selected, available ports of LAG 1: port 5 -- port 8')
         self.open_tab(self.MENU_SECTION, 'LAG')
         self.web_controller.switch_to_frame(Frame.MAIN)
         self._fill_lag_settings_form(lag_id, ports)
@@ -184,9 +184,9 @@ class SwitchingControlField(ControlField):
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
         alert_info = self.get_alert_text()
         if not alert_info:
-            raise LAGPortError('Cannot add port to LAG group due to unknown error.')
+            raise LAGPortException('Cannot add port to LAG group due to unknown error.')
         if alert_info == 'Mirroring port cannot be a trunk member port':
-            raise LAGPortError('Mirroring port cannot be a trunk member port. '
+            raise LAGPortException('Mirroring port cannot be a trunk member port. '
                                'Mirroring and mirrored port cannot be added to a LAG group.')
         return True
 
