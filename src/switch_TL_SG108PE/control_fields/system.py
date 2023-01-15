@@ -1,6 +1,7 @@
 """Contains code to manage system section from menu tab."""
 
 import ipaddress
+from typing import Dict
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
@@ -15,7 +16,7 @@ class SystemControlField(ControlField):
     MENU_SECTION = 'System'
 
     @ControlField.login_required
-    def system_info(self) -> dict[str, str]:
+    def system_info(self) -> Dict[str, str]:
         """
         Gets switch system information.
         :return: dict with basic information about switch system
@@ -61,7 +62,7 @@ class SystemControlField(ControlField):
         return self.wait_for_success_alert()
 
     @ControlField.login_required
-    def ip_settings(self) -> dict[str, str]:
+    def ip_settings(self) -> Dict[str, str]:
         """
         Gets host settings. It shows host assigned to switch in network.
         :return: information about host, mask, gateway
@@ -139,7 +140,7 @@ class SystemControlField(ControlField):
         return self._select_led_radio_in_led_settings('off')
 
     @ControlField.login_required
-    def user_account(self) -> dict[str, str]:
+    def user_account(self) -> Dict[str, str]:
         """
         Returns username of admin account.
         :return: username

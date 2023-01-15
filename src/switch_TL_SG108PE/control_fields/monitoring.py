@@ -1,6 +1,6 @@
 """Contains code to manage monitoring section from menu tab."""
 
-from typing import List
+from typing import List, Dict
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
@@ -16,7 +16,7 @@ class MonitoringControlField(ControlField):
     MENU_SECTION = 'Monitoring'
 
     @ControlField.login_required
-    def port_statistics(self, refresh: bool = True) -> dict[str, dict[str, str]]:
+    def port_statistics(self, refresh: bool = True) -> Dict[str, Dict[str, str]]:
         """
         Displays the traffic information of each port,
         which facilitates you to monitor the traffic and analyze the network abnormity.
@@ -57,7 +57,7 @@ class MonitoringControlField(ControlField):
         return True
 
     @ControlField.login_required
-    def mirrored_ports(self) -> dict[str, dict[str, str]]:
+    def mirrored_ports(self) -> Dict[str, Dict[str, str]]:
         """
         Returns information about enabling of ingress and egress feature for each mirrored port.
         :return: information of mirrored ports
@@ -77,7 +77,7 @@ class MonitoringControlField(ControlField):
         return mirrored_ports
 
     @ControlField.login_required
-    def mirroring_port(self) -> dict[str, str]:
+    def mirroring_port(self) -> Dict[str, str]:
         """
         Returns information about mirroring port. If mirroring port is not enabled it returns empty value.
         :return: information of mirroring ports
@@ -129,7 +129,7 @@ class MonitoringControlField(ControlField):
         return self.wait_for_success_alert()
 
     @ControlField.login_required
-    def loop_prevention(self) -> dict[str, str]:
+    def loop_prevention(self) -> Dict[str, str]:
         """
         Returns status of enabling loop prevention.
         :return: info about loop prevention (Enable / Disable)

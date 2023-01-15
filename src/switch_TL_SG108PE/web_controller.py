@@ -1,5 +1,6 @@
 """Contains class to control web browser."""
 
+from typing import List
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.wait import WebDriverWait
@@ -107,7 +108,7 @@ class WebController:
         """
         return self.webdriver.find_element(method, query)
 
-    def find_elements(self, method: By, query: str) -> list[WebElement]:
+    def find_elements(self, method: By, query: str) -> List[WebElement]:
         """
         Finds multiple elements with matching query and returns them.
         :param method: used to specify which attribute is used to locate elements on a page

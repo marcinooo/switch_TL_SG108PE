@@ -1,6 +1,6 @@
 """Contains code to manage vlan section from menu tab."""
 
-from typing import List, Union
+from typing import List, Dict, Union
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
@@ -17,7 +17,7 @@ class VLANControlField(ControlField):
     MENU_SECTION = 'VLAN'
 
     @ControlField.login_required
-    def mtu_vlan_configuration(self) -> dict[str, str]:
+    def mtu_vlan_configuration(self) -> Dict[str, str]:
         """
         Returns mtu VLAN configuration status and current uplink port.
         :return: downloaded details
@@ -72,7 +72,7 @@ class VLANControlField(ControlField):
         return self.wait_for_success_alert()
 
     @ControlField.login_required
-    def port_based_vlan_configuration(self) -> dict[str, Union[List[str], str]]:
+    def port_based_vlan_configuration(self) -> Dict[str, Union[List[str], str]]:
         """
         Returns information about port based VLANs.
         :return: downloaded configuration info
@@ -160,7 +160,7 @@ class VLANControlField(ControlField):
         return self.wait_for_success_alert()
 
     @ControlField.login_required
-    def ieee_802_1q_vlan_configuration(self) -> dict[str, str]:
+    def ieee_802_1q_vlan_configuration(self) -> Dict[str, str]:
         """
         Returns information about 802.1Q VLANs.
         :return: downloaded configuration info
@@ -263,7 +263,7 @@ class VLANControlField(ControlField):
         self.apply_settings(*delete_button_details, wait_for_confirmation_alert=False)
         return self.wait_for_success_alert()
 
-    def _fill_add_port_base_vlan_form(self, vlan_id: int, ports: list[int]) -> None:
+    def _fill_add_port_base_vlan_form(self, vlan_id: int, ports: List[int]) -> None:
         self._enter_value_in_vlan_input('t_vid', str(vlan_id))
         for i in range(1, 9):
             port_checkbox_details = (By.XPATH, f"//input[@id='port_{i}']")

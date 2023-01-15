@@ -1,5 +1,6 @@
 """Contains code to manage switching section from menu tab."""
 
+from typing import List, Dict
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.remote.webelement import WebElement
@@ -16,7 +17,7 @@ class SwitchingControlField(ControlField):
     MENU_SECTION = 'Switching'
 
     @ControlField.login_required
-    def ports_settings(self) -> dict[str, dict[str, str]]:
+    def ports_settings(self) -> Dict[str, Dict[str, str]]:
         """
         Returns settings of all ports.
         :return: settings
@@ -68,7 +69,7 @@ class SwitchingControlField(ControlField):
         return self.wait_for_success_alert()
 
     @ControlField.login_required
-    def igmp_snooping(self) -> dict[str, str]:
+    def igmp_snooping(self) -> Dict[str, str]:
         """
         Returns settings of IGMP settings and Report Message Suppression.
         :return: current settings
@@ -141,7 +142,7 @@ class SwitchingControlField(ControlField):
         return self.wait_for_success_alert()
 
     @ControlField.login_required
-    def lag_settings(self) -> dict[str, str]:
+    def lag_settings(self) -> Dict[str, str]:
         """
         Returns information about LAG settings.
         :return: current settings
@@ -160,7 +161,7 @@ class SwitchingControlField(ControlField):
         return lag_settings
 
     @ControlField.login_required
-    def set_lag_ports(self, lag_id: int, ports: list[int]) -> bool:
+    def set_lag_ports(self, lag_id: int, ports: List[int]) -> bool:
         """
         Sets given LAG for indicated ports. At least two ports should be passed.
         Mirroring port cannot be a trunk member port. Mirroring and mirrored port cannot be added to a LAG group.
@@ -224,7 +225,7 @@ class SwitchingControlField(ControlField):
             return False
         return True
 
-    def _fill_lag_settings_form(self, lag_id: int, ports: list[int]) -> None:
+    def _fill_lag_settings_form(self, lag_id: int, ports: List[int]) -> None:
         lag_select_details = (By.XPATH, "//select[@id='trunkSel']")
         self.web_controller.wait_until_element_is_present(*lag_select_details)
         lag_select = Select(self.web_controller.find_element(*lag_select_details))
