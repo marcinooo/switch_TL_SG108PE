@@ -2,6 +2,10 @@
 Library to control network switch tp-link TL-SG108PE
 ====================================================
 
+.. image:: https://circleci.com/gh/marcinooo/switch_TL_SG108PE/tree/main.svg?style=svg
+    :target: https://circleci.com/gh/marcinooo/switch_TL_SG108PE/?branch=main
+
+
 |
 
 :Author: marcinooo
