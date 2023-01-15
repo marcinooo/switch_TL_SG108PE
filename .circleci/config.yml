@@ -1,0 +1,37 @@
+version: 2.1
+orbs:
+  python: circleci/python@2.0.3
+jobs:
+  build-and-test-py37:  &build-and-test-template
+    docker:
+      - image: cimg/python:3.7
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: pip
+          pip-dependency-file: requirements/development.txt
+      - run:
+          name: Run pylint
+          command: pylint src
+      - run:
+          name: Run utests
+          command: pytest tests/utests
+  build-and-test-py38:
+    <<: *build-and-test-template
+    docker:
+      - image: cimg/python:3.8
+  build-and-test-py39:
+    <<: *build-and-test-template
+    docker:
+      - image: cimg/python:3.9
+  build-and-test-py310:
+    <<: *build-and-test-template
+    docker:
+      - image: cimg/python:3.10
+workflows:
+  test:
+    jobs:
+      - build-and-test-py37
+      - build-and-test-py38
+      - build-and-test-py39
+      - build-and-test-py310
