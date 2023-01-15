@@ -1,0 +1,5 @@
+selenium
+ddt
+python-dotenv
+pytest
+pylint
