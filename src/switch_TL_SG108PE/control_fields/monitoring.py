@@ -13,17 +13,18 @@ from ..exceptions import PortIsNotAvailableError
 class MonitoringControlField(ControlField):
     """Creates object to control monitoring settings on switch."""
 
-    MENU_SECTION = 'Monitoring'
+    _MENU_SECTION = 'Monitoring'
 
     @ControlField.login_required
     def port_statistics(self, refresh: bool = True) -> Dict[str, Dict[str, str]]:
         """
         Displays the traffic information of each port,
         which facilitates you to monitor the traffic and analyze the network abnormity.
+
         :param refresh: indicates if statistics should be refreshed before requesting
         :return: statistics information
         """
-        self.open_tab(self.MENU_SECTION, 'Port Statistics')
+        self.open_tab(self._MENU_SECTION, 'Port Statistics')
         self.web_controller.switch_to_frame(Frame.MAIN)
         if refresh:
             self.refresh_port_statistics()
@@ -48,9 +49,10 @@ class MonitoringControlField(ControlField):
     def refresh_port_statistics(self) -> bool:
         """
         Refreshes statistics of ports.
+
         :return: True
         """
-        self.open_tab(self.MENU_SECTION, 'Port Statistics')
+        self.open_tab(self._MENU_SECTION, 'Port Statistics')
         self.web_controller.switch_to_frame(Frame.MAIN)
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='refresh']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
@@ -60,9 +62,10 @@ class MonitoringControlField(ControlField):
     def mirrored_ports(self) -> Dict[str, Dict[str, str]]:
         """
         Returns information about enabling of ingress and egress feature for each mirrored port.
+
         :return: information of mirrored ports
         """
-        self.open_tab(self.MENU_SECTION, 'Port Mirror')
+        self.open_tab(self._MENU_SECTION, 'Port Mirror')
         self.web_controller.switch_to_frame(Frame.MAIN)
         mirrored_ports = {'Mirrored Ports': {}}
         tds_mirrored_port_details = (By.XPATH, "//form[@name='mirrored_port_set']//table[@class='BORDER']//td")
@@ -80,9 +83,10 @@ class MonitoringControlField(ControlField):
     def mirroring_port(self) -> Dict[str, str]:
         """
         Returns information about mirroring port. If mirroring port is not enabled it returns empty value.
+
         :return: information of mirroring ports
         """
-        self.open_tab(self.MENU_SECTION, 'Port Mirror')
+        self.open_tab(self._MENU_SECTION, 'Port Mirror')
         self.web_controller.switch_to_frame(Frame.MAIN)
         select_mirroring_port_details = (By.XPATH, "//form[@name='mirror_enabled_set']//select[@name='mirroringport']")
         self.web_controller.wait_until_element_is_present(*select_mirroring_port_details)
@@ -98,13 +102,14 @@ class MonitoringControlField(ControlField):
         """
         Enables port mirroring for given port combination. It duplicates the datagram transmitted through
         Mirrored Ports to Mirroring Port.
+
         :param mirrored_ports: ports which will be source of datagrams (observed ports)
         :param mirroring_port: port where datagrams will be passed (destination port)
         :param ingress: if True, traffic entering the port will be monitored
         :param egress: if True, outgoing traffic the port will be monitored
         :return: True if mirroring was successfully set, otherwise False
         """
-        self.open_tab(self.MENU_SECTION, 'Port Mirror')
+        self.open_tab(self._MENU_SECTION, 'Port Mirror')
         self.web_controller.switch_to_frame(Frame.MAIN)
         validate_port_id(mirroring_port)
         for port in mirrored_ports:
@@ -119,9 +124,10 @@ class MonitoringControlField(ControlField):
     def disable_port_mirroring(self) -> bool:
         """
         Disables port mirroring.
+
         :return: True if port mirroring was deleted successfully, otherwise False
         """
-        self.open_tab(self.MENU_SECTION, 'Port Mirror')
+        self.open_tab(self._MENU_SECTION, 'Port Mirror')
         self.web_controller.switch_to_frame(Frame.MAIN)
         self._manage_status_of_mirroring_port('Disable')
         apply_mirroring_port_button_details = (By.XPATH, "//table/tbody/tr/td/a/input[@name='mirrorenable']")
@@ -132,9 +138,10 @@ class MonitoringControlField(ControlField):
     def loop_prevention(self) -> Dict[str, str]:
         """
         Returns status of enabling loop prevention.
+
         :return: info about loop prevention (Enable / Disable)
         """
-        self.open_tab(self.MENU_SECTION, 'Loop Prevention')
+        self.open_tab(self._MENU_SECTION, 'Loop Prevention')
         self.web_controller.switch_to_frame(Frame.MAIN)
         select_loop_prevention = self._get_loop_prevention_select()
         return {'Loop Prevention': select_loop_prevention.first_selected_option.text.strip()}
@@ -143,6 +150,7 @@ class MonitoringControlField(ControlField):
     def enable_loop_prevention(self) -> bool:
         """
         Enables loop prevention.
+
         :return: True if loop prevention was enabled successfully, otherwise False
         """
         return self._select_loop_prevention('Enable')
@@ -151,12 +159,13 @@ class MonitoringControlField(ControlField):
     def disable_loop_prevention(self) -> bool:
         """
         Disables loop prevention.
+
         :return: True if loop prevention was disabled successfully, otherwise False
         """
         return self._select_loop_prevention('Disable')
 
     def _select_loop_prevention(self, action: str = 'Enable') -> bool:
-        self.open_tab(self.MENU_SECTION, 'Loop Prevention')
+        self.open_tab(self._MENU_SECTION, 'Loop Prevention')
         self.web_controller.switch_to_frame(Frame.MAIN)
         select_loop_prevention = self._get_loop_prevention_select()
         option_value = dict(Enable='1', Disable='0').get(action)

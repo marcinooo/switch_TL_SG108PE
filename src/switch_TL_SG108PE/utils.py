@@ -17,6 +17,7 @@ class Frame(Enum):
 def get_port_label(port_id: int) -> PORT_LABEL:
     """
     Gets label for given port id. Label is string pattern visible in admin page.
+
     :param port_id: port number
     :return: port label
     """
@@ -26,6 +27,7 @@ def get_port_label(port_id: int) -> PORT_LABEL:
 def get_lag_label(lag_id: int) -> LAG_LABEL:
     """
     Gets label for given LAG id. Label is string pattern visible in admin page.
+
     :param lag_id: port number
     :return: lag label
     """
@@ -34,7 +36,8 @@ def get_lag_label(lag_id: int) -> LAG_LABEL:
 
 def validate_vlan_id(vlan_id: int) -> None:
     """
-    Validates id of vlan. If id is incorrect, exception will be raise.
+    Validates id of vlan. If id is incorrect, exception will be raised.
+
     :param vlan_id:
     :return: None
     """
@@ -44,7 +47,8 @@ def validate_vlan_id(vlan_id: int) -> None:
 
 def validate_port_id(port_id: int) -> None:
     """
-    Validates id of port. If id is incorrect, exception will be raise.
+    Validates id of port. If id is incorrect, exception will be raised.
+
     :param port_id:
     :return: None
     """
@@ -56,7 +60,8 @@ def validate_port_id(port_id: int) -> None:
 
 def validate_lag_id(lag_id: int) -> None:
     """
-    Validates id of LAG. If id is incorrect, exception will be raise.
+    Validates id of LAG. If id is incorrect, exception will be raised.
+
     :param lag_id:
     :return: None
     """

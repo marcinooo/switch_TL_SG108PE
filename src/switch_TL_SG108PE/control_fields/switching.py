@@ -14,15 +14,16 @@ from ..exceptions import LAGPortException, OptionDisabledException
 class SwitchingControlField(ControlField):
     """Creates object to control switching settings on switch."""
 
-    MENU_SECTION = 'Switching'
+    _MENU_SECTION = 'Switching'
 
     @ControlField.login_required
     def ports_settings(self) -> Dict[str, Dict[str, str]]:
         """
         Returns settings of all ports.
+
         :return: settings
         """
-        self.open_tab(self.MENU_SECTION, 'Port Setting')
+        self.open_tab(self._MENU_SECTION, 'Port Setting')
         self.web_controller.switch_to_frame(Frame.MAIN)
         ports_settings = {}
         ports_rows_details = (By.XPATH, "//table[@class='BORDER']/tbody/tr/td[@class='TABLE_HEAD_BOTTOM']")
@@ -42,6 +43,7 @@ class SwitchingControlField(ControlField):
     def set_port_settings(self, port: int, status: STATUS, speed: SPEED, flow_control: FLOW_CONTROL) -> bool:
         """
         Apply given settings for indicated port.
+
         :param port: number of port
         :param status: status of port (enable / disable)
         :param speed: speed of port (auto / 10MH / 10MF / 100MH / 100MF / 1000Mf)
@@ -50,7 +52,7 @@ class SwitchingControlField(ControlField):
         """
         validate_port_id(port)
         port_label = get_port_label(port)
-        self.open_tab(self.MENU_SECTION, 'Port Setting')
+        self.open_tab(self._MENU_SECTION, 'Port Setting')
         self.web_controller.switch_to_frame(Frame.MAIN)
         port_select_details = (By.XPATH, "//select[@id='portSel']")
         if not self._select_port_setting(*port_select_details, port_label.value):
@@ -72,9 +74,10 @@ class SwitchingControlField(ControlField):
     def igmp_snooping(self) -> Dict[str, str]:
         """
         Returns settings of IGMP settings and Report Message Suppression.
+
         :return: current settings
         """
-        self.open_tab(self.MENU_SECTION, 'IGMP Snooping')
+        self.open_tab(self._MENU_SECTION, 'IGMP Snooping')
         self.web_controller.switch_to_frame(Frame.MAIN)
         igmp_snooping_settings = {}
         enable_input = self._find_igmp_snooping_input('igmpEn')
@@ -89,9 +92,10 @@ class SwitchingControlField(ControlField):
     def enable_igmp_snooping(self) -> bool:
         """
         Enables IGMP settings.
+
         :return: True if IGMP settings was enabled successfully, otherwise False
         """
-        self.open_tab(self.MENU_SECTION, 'IGMP Snooping')
+        self.open_tab(self._MENU_SECTION, 'IGMP Snooping')
         self.web_controller.switch_to_frame(Frame.MAIN)
         enable_input = self._find_igmp_snooping_input('igmpEn')
         enable_input.click()
@@ -103,9 +107,10 @@ class SwitchingControlField(ControlField):
     def disable_igmp_snooping(self) -> bool:
         """
         Disables IGMP settings.
+
         :return: True if IGMP settings was disabled successfully, otherwise False
         """
-        self.open_tab(self.MENU_SECTION, 'IGMP Snooping')
+        self.open_tab(self._MENU_SECTION, 'IGMP Snooping')
         self.web_controller.switch_to_frame(Frame.MAIN)
         disable_input = self._find_igmp_snooping_input('igmpDis')
         disable_input.click()
@@ -117,9 +122,10 @@ class SwitchingControlField(ControlField):
     def enable_report_message_suppression(self) -> bool:
         """
         Enables Report Message Suppression.
+
         :return: True if Report Message Suppression was enabled successfully, otherwise False
         """
-        self.open_tab(self.MENU_SECTION, 'IGMP Snooping')
+        self.open_tab(self._MENU_SECTION, 'IGMP Snooping')
         self.web_controller.switch_to_frame(Frame.MAIN)
         enable_input = self._find_igmp_snooping_input('reportSuEn')
         enable_input.click()
@@ -131,9 +137,10 @@ class SwitchingControlField(ControlField):
     def disable_report_message_suppression(self) -> bool:
         """
         Disables Report Message Suppression.
+
         :return: True if Report Message Suppression was disabled successfully, otherwise False
         """
-        self.open_tab(self.MENU_SECTION, 'IGMP Snooping')
+        self.open_tab(self._MENU_SECTION, 'IGMP Snooping')
         self.web_controller.switch_to_frame(Frame.MAIN)
         disable_input = self._find_igmp_snooping_input('reportSuDis')
         disable_input.click()
@@ -145,9 +152,10 @@ class SwitchingControlField(ControlField):
     def lag_settings(self) -> Dict[str, str]:
         """
         Returns information about LAG settings.
+
         :return: current settings
         """
-        self.open_tab(self.MENU_SECTION, 'LAG')
+        self.open_tab(self._MENU_SECTION, 'LAG')
         self.web_controller.switch_to_frame(Frame.MAIN)
         lag_settings = {}
         lag_td_details = (
@@ -165,6 +173,7 @@ class SwitchingControlField(ControlField):
         """
         Sets given LAG for indicated ports. At least two ports should be passed.
         Mirroring port cannot be a trunk member port. Mirroring and mirrored port cannot be added to a LAG group.
+
         :param lag_id: id of LAG
         :param ports: list of ports
         :return: True if ports were added to LAG group successfully
@@ -178,7 +187,7 @@ class SwitchingControlField(ControlField):
             raise LAGPortException('Port can not be selected, available ports of LAG 1: port 1 -- port 4')
         if lag_id == 2 and not all(map(lambda p: p in [5, 6, 7, 8], ports)):
             raise LAGPortException('Port can not be selected, available ports of LAG 1: port 5 -- port 8')
-        self.open_tab(self.MENU_SECTION, 'LAG')
+        self.open_tab(self._MENU_SECTION, 'LAG')
         self.web_controller.switch_to_frame(Frame.MAIN)
         self._fill_lag_settings_form(lag_id, ports)
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='setapply']")
@@ -195,11 +204,12 @@ class SwitchingControlField(ControlField):
     def unset_lag_ports(self, lag_id: int) -> bool:
         """
         Delete all ports from given LAG group.
+
         :param lag_id: id of LAG
         :return: True if ports were deleted successfully, otherwise False
         """
         validate_lag_id(lag_id)
-        self.open_tab(self.MENU_SECTION, 'LAG')
+        self.open_tab(self._MENU_SECTION, 'LAG')
         self.web_controller.switch_to_frame(Frame.MAIN)
         lag_label = get_lag_label(lag_id)
         input_checkbox_details = (By.XPATH, f"//input[@name='chk_trunk' and @id='chk{lag_label.value.split()[1]}']")

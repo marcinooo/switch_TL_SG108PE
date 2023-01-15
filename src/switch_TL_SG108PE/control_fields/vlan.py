@@ -14,15 +14,16 @@ from ..exceptions import (MtuVlanIsNotEnabled, VlanConfigurationIsNotEnabledExce
 class VLANControlField(ControlField):
     """Creates object to control VLAN settings on switch."""
 
-    MENU_SECTION = 'VLAN'
+    _MENU_SECTION = 'VLAN'
 
     @ControlField.login_required
     def mtu_vlan_configuration(self) -> Dict[str, str]:
         """
         Returns mtu VLAN configuration status and current uplink port.
+
         :return: downloaded details
         """
-        self.open_tab(self.MENU_SECTION, 'MTU VLAN')
+        self.open_tab(self._MENU_SECTION, 'MTU VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         mtu_vlan = {
             'MTU VLAN Configuration': 'Enable' if self._is_vlan_configuration_enabled('mtu_en') else 'Disable',
@@ -34,6 +35,7 @@ class VLANControlField(ControlField):
     def enable_mtu_vlan_configuration(self) -> bool:
         """
         Enables mtu VLAN configuration.
+
         :return: Ture if configuration was enabled successfully, otherwise False
         """
         return self._select_mtu_vlan_configuration('Enable')
@@ -42,6 +44,7 @@ class VLANControlField(ControlField):
     def disable_mtu_vlan_configuration(self) -> bool:
         """
         Disables mtu VLAN configuration.
+
         :return: Ture if configuration was disabled successfully, otherwise False
         """
         return self._select_mtu_vlan_configuration('Disable')
@@ -53,12 +56,13 @@ class VLANControlField(ControlField):
         MTU VLAN (Multi-Tenant Unit VLAN) defines an uplink port which will build up several VLANs with each of
         the other ports. Each VLAN contains two ports, the uplink port and one of the other ports in the switch,
         so the uplink port can communicate with any other port but other ports cannot communicate with each other.
+
         :param port: port id
         :return: True if port was set successful, otherwise False
         """
         validate_port_id(port)
         port = get_port_label(port_id=port)
-        self.open_tab(self.MENU_SECTION, 'MTU VLAN')
+        self.open_tab(self._MENU_SECTION, 'MTU VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         is_mtu_vlan_configuration_enabled = self._is_vlan_configuration_enabled('mtu_en')
         if not is_mtu_vlan_configuration_enabled:
@@ -75,9 +79,10 @@ class VLANControlField(ControlField):
     def port_based_vlan_configuration(self) -> Dict[str, Union[List[str], str]]:
         """
         Returns information about port based VLANs.
+
         :return: downloaded configuration info
         """
-        self.open_tab(self.MENU_SECTION, 'Port Based VLAN')
+        self.open_tab(self._MENU_SECTION, 'Port Based VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         configuration_enabled = self._is_vlan_configuration_enabled('pvlan_en')
         port_based_vlan_configuration = {
@@ -100,6 +105,7 @@ class VLANControlField(ControlField):
     def enable_port_based_vlan_configuration(self) -> bool:
         """
         Enables port based VLAN configuration management.
+
         :return: Ture if configuration was enabled successfully, otherwise False
         """
         return self._select_port_based_vlan_configuration('Enable')
@@ -108,6 +114,7 @@ class VLANControlField(ControlField):
     def disable_port_based_vlan_configuration(self) -> bool:
         """
         Disables port based VLAN configuration management.
+
         :return: Ture if configuration was disabled successfully, otherwise False
         """
         return self._select_port_based_vlan_configuration('Disable')
@@ -116,6 +123,7 @@ class VLANControlField(ControlField):
     def add_port_based_vlan(self, vlan_id: int, ports: List[int]) -> bool:
         """
         Add new port based VLAN.
+
         :param vlan_id: id of VLAN (2-8)
         :param ports: list of ports IDs to add (up to 7 ports we can add)
         :return: True if VLAN was created successfully, otherwise False
@@ -127,7 +135,7 @@ class VLANControlField(ControlField):
             raise VlanIdException('VLAN ID must be in range of 2-8!')
         if len(ports) > 7:
             raise WrongNumberOfPortsException("Can't remove all ports from VLAN 1.")
-        self.open_tab(self.MENU_SECTION, 'Port Based VLAN')
+        self.open_tab(self._MENU_SECTION, 'Port Based VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         if not self._is_vlan_configuration_enabled('pvlan_en'):
             raise VlanConfigurationIsNotEnabledException(
@@ -141,11 +149,12 @@ class VLANControlField(ControlField):
     def remove_port_based_vlan(self, vlan_id: int) -> bool:
         """
         Removes given port based VLAN by id.
+
         :param vlan_id: VLAN ID
         :return: True if VLAN was deleted successfully, otherwise False
         """
         validate_vlan_id(vlan_id)
-        self.open_tab(self.MENU_SECTION, 'Port Based VLAN')
+        self.open_tab(self._MENU_SECTION, 'Port Based VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         if not self._is_vlan_configuration_enabled('pvlan_en'):
             raise VlanConfigurationIsNotEnabledException('Port VLAN should be enabled before reading vlan details.')
@@ -163,9 +172,10 @@ class VLANControlField(ControlField):
     def ieee_802_1q_vlan_configuration(self) -> Dict[str, str]:
         """
         Returns information about 802.1Q VLANs.
+
         :return: downloaded configuration info
         """
-        self.open_tab(self.MENU_SECTION, '802.1Q VLAN')
+        self.open_tab(self._MENU_SECTION, '802.1Q VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         configuration_enabled = self._is_vlan_configuration_enabled('qvlan_en')
         ieee_802_1q_vlan_configuration = {
@@ -192,6 +202,7 @@ class VLANControlField(ControlField):
     def enable_ieee_802_1q_vlan_configuration(self) -> bool:
         """
         Enables 802.1Q VLAN configuration management.
+
         :return: Ture if configuration was enabled successfully, otherwise False
         """
         return self._select_ieee_802_1q_vlan_configuration('Enable')
@@ -200,6 +211,7 @@ class VLANControlField(ControlField):
     def disable_ieee_802_1q_vlan_configuration(self) -> bool:
         """
         Disables 802.1Q VLAN configuration management.
+
         :return: Ture if configuration was disabled successfully, otherwise False
         """
         return self._select_ieee_802_1q_vlan_configuration('Disable')
@@ -208,6 +220,7 @@ class VLANControlField(ControlField):
     def add_ieee_802_1q_vlan(self, vlan_id: int, ports: List[IEEE8021QPort], vlan_name: str = '') -> bool:
         """
         Add new 802.1Q VLAN.
+
         :param vlan_id: VLAN ID
         :param ports: ports to add to given VLAN
         :param vlan_name: name of VLAN
@@ -221,7 +234,7 @@ class VLANControlField(ControlField):
             raise VlanIdException('VLAN ID must be in range of 1-4094!')
         if len(ports) > 8:
             raise WrongNumberOfPortsException("Current switch has only 8 ports.")
-        self.open_tab(self.MENU_SECTION, '802.1Q VLAN')
+        self.open_tab(self._MENU_SECTION, '802.1Q VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         if not self._is_vlan_configuration_enabled('qvlan_en'):
             raise VlanConfigurationIsNotEnabledException(
@@ -244,10 +257,11 @@ class VLANControlField(ControlField):
     def remove_ieee_802_1q_vlan(self, vlan_id: int) -> bool:
         """
         Removes given 802.1Q VLAN by id.
+
         :param vlan_id: VLAN ID
         :return: True if VLAN was deleted successfully, otherwise False
         """
-        self.open_tab(self.MENU_SECTION, 'Port Based VLAN')
+        self.open_tab(self._MENU_SECTION, 'Port Based VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         vlan_configuration = self.ieee_802_1q_vlan_configuration()
         if vlan_configuration['802.1Q VLAN Configuration'] != 'Enable':
@@ -305,7 +319,7 @@ class VLANControlField(ControlField):
         not_member_radio.click()
 
     def _select_mtu_vlan_configuration(self, action: str = 'Enable') -> bool:
-        self.open_tab(self.MENU_SECTION, 'MTU VLAN')
+        self.open_tab(self._MENU_SECTION, 'MTU VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         is_mtu_vlan_configuration_enabled = self._is_vlan_configuration_enabled('mtu_en')
         if is_mtu_vlan_configuration_enabled and action == 'Enable' or \
@@ -321,7 +335,7 @@ class VLANControlField(ControlField):
         return self.wait_for_success_alert()
 
     def _select_port_based_vlan_configuration(self, action: str = 'Enable') -> bool:
-        self.open_tab(self.MENU_SECTION, 'Port Based VLAN')
+        self.open_tab(self._MENU_SECTION, 'Port Based VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         configuration_enabled = self._is_vlan_configuration_enabled('pvlan_en')
         if configuration_enabled and action == 'Enable' or not configuration_enabled and action == 'Disable':
@@ -336,7 +350,7 @@ class VLANControlField(ControlField):
         return self.wait_for_success_alert()
 
     def _select_ieee_802_1q_vlan_configuration(self, action: str = 'Enable') -> bool:
-        self.open_tab(self.MENU_SECTION, '802.1Q VLAN')
+        self.open_tab(self._MENU_SECTION, '802.1Q VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         configuration_enabled = self._is_vlan_configuration_enabled('qvlan_en')
         if configuration_enabled and action == 'Enable' or not configuration_enabled and action == 'Disable':

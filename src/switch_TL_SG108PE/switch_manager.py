@@ -30,6 +30,7 @@ class SwitchManager:
     def connect(self, host: str, login: str, password: str, headless: bool = True, webdriver: WebDriver = None) -> None:
         """
         Connects SwitchManager to admin web page of switch.
+
         :param host: host address of switch
         :param login: name of login
         :param password: secret password
@@ -63,6 +64,7 @@ class SwitchManager:
     def disconnect(self) -> None:
         """
         Disconnects SwitchManager from admin web page of switch.
+
         :return: None
         """
         self._web_controller.logout()
@@ -79,6 +81,7 @@ class SwitchManager:
         """
         Returns object to control particular section in admin web page - control field.
         There are 6 control sections: system, switching, monitoring, VLAN, QoS, PoE
+
         :param control_field: name of control field (according to sidebar navigation in admin web page)
         :return: given control field
         """
@@ -93,6 +96,7 @@ class SwitchManager:
     def get_control_fields(self) -> List[str]:
         """
         Returns list of possible control fields according to sidebar navigation in admin web page.
+
         :return: control fields
         """
         return list(self._control_fields.keys())
