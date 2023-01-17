@@ -7,8 +7,9 @@ from selenium.webdriver.support.ui import Select
 from .control_field import ControlField
 from ..utils import Frame, validate_vlan_id, validate_port_id, get_port_label
 from ..port import IEEE8021QPort
-from ..exceptions import (MtuVlanIsNotEnabled, VlanConfigurationIsNotEnabledException, WrongNumberOfPortsException,
-                          VlanIdException, PortIdException)
+from ..exceptions import (MtuVlanException, VlanConfigurationIsNotEnabledException, WrongNumberOfPortsException,
+                          VlanIdException, PortIdException, MtuVlanUplinkPort, PortBaseVlanException,
+                          IEEE8021QVlanException)
 
 
 class VLANControlField(ControlField):
@@ -32,25 +33,27 @@ class VLANControlField(ControlField):
         return mtu_vlan
 
     @ControlField.login_required
-    def enable_mtu_vlan_configuration(self) -> bool:
+    def enable_mtu_vlan_configuration(self) -> None:
         """
         Enables mtu VLAN configuration.
 
+        :raises MtuVlanException: if mtu VLAN configuration was not enabled successfully
         :return: Ture if configuration was enabled successfully, otherwise False
         """
-        return self._select_mtu_vlan_configuration('Enable')
+        self._select_mtu_vlan_configuration('Enable')
 
     @ControlField.login_required
-    def disable_mtu_vlan_configuration(self) -> bool:
+    def disable_mtu_vlan_configuration(self) -> None:
         """
         Disables mtu VLAN configuration.
 
+        :raises MtuVlanException: if mtu VLAN configuration was not disabled successfully
         :return: Ture if configuration was disabled successfully, otherwise False
         """
-        return self._select_mtu_vlan_configuration('Disable')
+        self._select_mtu_vlan_configuration('Disable')
 
     @ControlField.login_required
-    def change_mtu_vlan_uplink_port(self, port: int) -> bool:
+    def change_mtu_vlan_uplink_port(self, port: int) -> None:
         """
         Select a port as uplink port.
         MTU VLAN (Multi-Tenant Unit VLAN) defines an uplink port which will build up several VLANs with each of
@@ -58,7 +61,10 @@ class VLANControlField(ControlField):
         so the uplink port can communicate with any other port but other ports cannot communicate with each other.
 
         :param port: port id
-        :return: True if port was set successful, otherwise False
+        :raises PortIdException: if port ID is invalid
+        :raises MtuVlanException: if mtu VLAN configuration was not enabled before
+        :raises MtuVlanUplinkPort: if mtu VLAN uplink port was not set successfully
+        :return: None
         """
         validate_port_id(port)
         port = get_port_label(port_id=port)
@@ -66,14 +72,18 @@ class VLANControlField(ControlField):
         self.web_controller.switch_to_frame(Frame.MAIN)
         is_mtu_vlan_configuration_enabled = self._is_vlan_configuration_enabled('mtu_en')
         if not is_mtu_vlan_configuration_enabled:
-            raise MtuVlanIsNotEnabled('MTU VLAN should be enabled before setting uplink port.')
+            raise MtuVlanException('MTU VLAN should be enabled before setting uplink port.')
         select_port_details = (By.XPATH, "//div[@id='div_sec_title']//select[@name='uplinkPort']")
         self.web_controller.wait_until_element_is_present(*select_port_details)
         select_port = Select(self.web_controller.find_element(*select_port_details))
         select_port.select_by_visible_text(port.value)
         apply_button_details = (By.XPATH, "//a[@class='BTN']/input[@name='mtu_uplink']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise MtuVlanUplinkPort(f'Cannot set "{port}" as mtu uplink port due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise MtuVlanUplinkPort(alert_info)
 
     @ControlField.login_required
     def port_based_vlan_configuration(self) -> Dict[str, Union[List[str], str]]:
@@ -102,31 +112,38 @@ class VLANControlField(ControlField):
         return port_based_vlan_configuration
 
     @ControlField.login_required
-    def enable_port_based_vlan_configuration(self) -> bool:
+    def enable_port_based_vlan_configuration(self) -> None:
         """
         Enables port based VLAN configuration management.
 
-        :return: Ture if configuration was enabled successfully, otherwise False
+        :raises PortBaseVlanException: if port base vlan configuration was not enabled successfully
+        :return: None
         """
-        return self._select_port_based_vlan_configuration('Enable')
+        self._select_port_based_vlan_configuration('Enable')
 
     @ControlField.login_required
-    def disable_port_based_vlan_configuration(self) -> bool:
+    def disable_port_based_vlan_configuration(self) -> None:
         """
         Disables port based VLAN configuration management.
 
-        :return: Ture if configuration was disabled successfully, otherwise False
+        :raises PortBaseVlanException: if port base vlan configuration was not disabled successfully
+        :return: None
         """
-        return self._select_port_based_vlan_configuration('Disable')
+        self._select_port_based_vlan_configuration('Disable')
 
     @ControlField.login_required
-    def add_port_based_vlan(self, vlan_id: int, ports: List[int]) -> bool:
+    def add_port_based_vlan(self, vlan_id: int, ports: List[int]) -> None:
         """
         Add new port based VLAN.
 
         :param vlan_id: id of VLAN (2-8)
         :param ports: list of ports IDs to add (up to 7 ports we can add)
-        :return: True if VLAN was created successfully, otherwise False
+        :raises VlanIdException: if VLAN ID is invalid
+        :raises PortIdException: if port ID is invalid
+        :raises WrongNumberOfPortsException: if user passed to many ports
+        :raises VlanConfigurationIsNotEnabledException: if port base vlan configuration is not enabled
+        :raises PortBaseVlanException: if ports were not added to given VLAN successfully
+        :return: None
         """
         validate_vlan_id(vlan_id)
         for port in ports:
@@ -139,25 +156,34 @@ class VLANControlField(ControlField):
         self.web_controller.switch_to_frame(Frame.MAIN)
         if not self._is_vlan_configuration_enabled('pvlan_en'):
             raise VlanConfigurationIsNotEnabledException(
-                'Port VLAN configuration should be enabled before reading vlan details.')
+                'Port VLAN configuration should be enabled before adding new VLAN.')
         self._fill_add_port_base_vlan_form(vlan_id, ports)
         apply_button_details = (By.XPATH, "//a[@class='BTN']/input[@name='pvlan_add']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise PortBaseVlanException(f'Cannot add "{ports}" to "{vlan_id}" VLAN due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise PortBaseVlanException(alert_info)
 
     @ControlField.login_required
-    def remove_port_based_vlan(self, vlan_id: int) -> bool:
+    def remove_port_based_vlan(self, vlan_id: int) -> None:
         """
         Removes given port based VLAN by id.
 
         :param vlan_id: VLAN ID
-        :return: True if VLAN was deleted successfully, otherwise False
+        :raises VlanIdException: if VLAN ID is invalid
+        :raises VlanConfigurationIsNotEnabledException: if port base vlan configuration is not enabled
+        :raises PortBaseVlanException: if VLAN deleting failed
+        :return: None
         """
         validate_vlan_id(vlan_id)
+        if vlan_id <= 1:
+            raise VlanIdException('VLAN ID can not be lower or equal 1.')
         self.open_tab(self._MENU_SECTION, 'Port Based VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         if not self._is_vlan_configuration_enabled('pvlan_en'):
-            raise VlanConfigurationIsNotEnabledException('Port VLAN should be enabled before reading vlan details.')
+            raise VlanConfigurationIsNotEnabledException('Port VLAN should be enabled before VLAN deletion.')
         if not any(vlan['VLAN ID'] == str(vlan_id) for vlan in self.port_based_vlan_configuration()['VLANs']):
             raise VlanIdException(f'VLAN {vlan_id} is not added in configuration.')
         delete_vlan_checkbox_details = (By.XPATH, f"//input[@id='vlan_{vlan_id}']")
@@ -166,7 +192,11 @@ class VLANControlField(ControlField):
         delete_vlan_checkbox.click()
         delete_button_details = (By.XPATH, "//a[@class='BTN']/input[@name='pvlan_del']")
         self.apply_settings(*delete_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise PortBaseVlanException(f'Cannot delete "{vlan_id}" VLAN due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise PortBaseVlanException(alert_info)
 
     @ControlField.login_required
     def ieee_802_1q_vlan_configuration(self) -> Dict[str, str]:
@@ -199,32 +229,38 @@ class VLANControlField(ControlField):
         return ieee_802_1q_vlan_configuration
 
     @ControlField.login_required
-    def enable_ieee_802_1q_vlan_configuration(self) -> bool:
+    def enable_ieee_802_1q_vlan_configuration(self) -> None:
         """
         Enables 802.1Q VLAN configuration management.
 
-        :return: Ture if configuration was enabled successfully, otherwise False
+        :raises IEEE8021QVlanException: if 802.1Q VLAN configuration was not enabled successfully
+        :return: None
         """
-        return self._select_ieee_802_1q_vlan_configuration('Enable')
+        self._select_ieee_802_1q_vlan_configuration('Enable')
 
     @ControlField.login_required
-    def disable_ieee_802_1q_vlan_configuration(self) -> bool:
+    def disable_ieee_802_1q_vlan_configuration(self) -> None:
         """
         Disables 802.1Q VLAN configuration management.
 
-        :return: Ture if configuration was disabled successfully, otherwise False
+        :raises IEEE8021QVlanException: if 802.1Q VLAN configuration was not disabled successfully
+        :return: None
         """
-        return self._select_ieee_802_1q_vlan_configuration('Disable')
+        self._select_ieee_802_1q_vlan_configuration('Disable')
 
     @ControlField.login_required
-    def add_ieee_802_1q_vlan(self, vlan_id: int, ports: List[IEEE8021QPort], vlan_name: str = '') -> bool:
+    def add_ieee_802_1q_vlan(self, vlan_id: int, ports: List[IEEE8021QPort], vlan_name: str = '') -> None:
         """
         Add new 802.1Q VLAN.
 
         :param vlan_id: VLAN ID
         :param ports: ports to add to given VLAN
         :param vlan_name: name of VLAN
-        :return: True if VLAN was created successfully, otherwise False
+        :raises VlanIdException: if VLAN ID is invalid
+        :raises WrongNumberOfPortsException: if user passed to many ports
+        :raises VlanConfigurationIsNotEnabledException: if 802.1Q VLAN configuration is not enabled
+        :raises IEEE8021QVlanException: if ports were not added to given VLAN successfully
+        :return: None
         """
         validate_vlan_id(vlan_id)
         for port in ports:
@@ -238,7 +274,7 @@ class VLANControlField(ControlField):
         self.web_controller.switch_to_frame(Frame.MAIN)
         if not self._is_vlan_configuration_enabled('qvlan_en'):
             raise VlanConfigurationIsNotEnabledException(
-                '802.1Q VLAN configuration should be enabled before reading vlan details.')
+                '802.1Q VLAN configuration should be enabled before adding new VLAN.')
         self._enter_value_in_vlan_input('t_vid', str(vlan_id))
         if vlan_name:
             self._enter_value_in_vlan_input('t_vname', vlan_name)
@@ -251,15 +287,21 @@ class VLANControlField(ControlField):
                 self._select_not_member_port(port_id)
         apply_button_details = (By.XPATH, "//a[@class='BTN']/input[@name='qvlan_add']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise IEEE8021QVlanException(f'Cannot add "{vlan_id}" VLAN due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise IEEE8021QVlanException(alert_info)
 
     @ControlField.login_required
-    def remove_ieee_802_1q_vlan(self, vlan_id: int) -> bool:
+    def remove_ieee_802_1q_vlan(self, vlan_id: int) -> None:
         """
         Removes given 802.1Q VLAN by id.
 
         :param vlan_id: VLAN ID
-        :return: True if VLAN was deleted successfully, otherwise False
+        :raises VlanConfigurationIsNotEnabledException: if port base vlan configuration is not enabled
+        :raises IEEE8021QVlanException: if VLAN deleting failed
+        :return: None
         """
         self.open_tab(self._MENU_SECTION, 'Port Based VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
@@ -275,7 +317,11 @@ class VLANControlField(ControlField):
         delete_vlan_checkbox.click()
         delete_button_details = (By.XPATH, "//a[@class='BTN']/input[@name='qvlan_del']")
         self.apply_settings(*delete_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise IEEE8021QVlanException(f'Cannot delete "{vlan_id}" VLAN due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise IEEE8021QVlanException(alert_info)
 
     def _fill_add_port_base_vlan_form(self, vlan_id: int, ports: List[int]) -> None:
         self._enter_value_in_vlan_input('t_vid', str(vlan_id))
@@ -318,13 +364,13 @@ class VLANControlField(ControlField):
         not_member_radio = self.web_controller.find_element(*not_member_radio_details)
         not_member_radio.click()
 
-    def _select_mtu_vlan_configuration(self, action: str = 'Enable') -> bool:
+    def _select_mtu_vlan_configuration(self, action: str = 'Enable') -> None:
         self.open_tab(self._MENU_SECTION, 'MTU VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         is_mtu_vlan_configuration_enabled = self._is_vlan_configuration_enabled('mtu_en')
         if is_mtu_vlan_configuration_enabled and action == 'Enable' or \
                 not is_mtu_vlan_configuration_enabled and action == 'Disable':
-            return True
+            return
         input_id = dict(Enable='mtu_en', Disable='mtu_dis').get(action)
         input_details = (By.XPATH, f"//input[@id='{input_id}']")
         self.web_controller.wait_until_element_is_present(*input_details)
@@ -332,14 +378,18 @@ class VLANControlField(ControlField):
         input_.click()
         apply_button_details = (By.XPATH, "//a[@class='BTN']/input[@name='mtu_mode']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise MtuVlanException(f'Cannot select "{action}" in mtu vlan configuration due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise MtuVlanException(alert_info)
 
-    def _select_port_based_vlan_configuration(self, action: str = 'Enable') -> bool:
+    def _select_port_based_vlan_configuration(self, action: str = 'Enable') -> None:
         self.open_tab(self._MENU_SECTION, 'Port Based VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         configuration_enabled = self._is_vlan_configuration_enabled('pvlan_en')
         if configuration_enabled and action == 'Enable' or not configuration_enabled and action == 'Disable':
-            return True
+            return
         input_id = dict(Enable='pvlan_en', Disable='pvlan_dis').get(action)
         input_details = (By.XPATH, f"//input[@id='{input_id}']")
         self.web_controller.wait_until_element_is_present(*input_details)
@@ -347,14 +397,19 @@ class VLANControlField(ControlField):
         input_.click()
         apply_button_details = (By.XPATH, "//a[@class='BTN']/input[@name='pvlan_mode']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise PortBaseVlanException(
+                f'Cannot select "{action}" in port based vlan configuration due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise PortBaseVlanException(alert_info)
 
-    def _select_ieee_802_1q_vlan_configuration(self, action: str = 'Enable') -> bool:
+    def _select_ieee_802_1q_vlan_configuration(self, action: str = 'Enable') -> None:
         self.open_tab(self._MENU_SECTION, '802.1Q VLAN')
         self.web_controller.switch_to_frame(Frame.MAIN)
         configuration_enabled = self._is_vlan_configuration_enabled('qvlan_en')
         if configuration_enabled and action == 'Enable' or not configuration_enabled and action == 'Disable':
-            return True
+            return
         input_id = dict(Enable='qvlan_en', Disable='qvlan_dis').get(action)
         input_details = (By.XPATH, f"//input[@id='{input_id}']")
         self.web_controller.wait_until_element_is_present(*input_details)
@@ -362,4 +417,9 @@ class VLANControlField(ControlField):
         input_.click()
         apply_button_details = (By.XPATH, "//a[@class='BTN']/input[@name='qvlan_mode']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise IEEE8021QVlanException(
+                f'Cannot select "{action}" in 802.1Q vlan configuration due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise IEEE8021QVlanException(alert_info)

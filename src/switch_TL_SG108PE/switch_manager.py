@@ -1,11 +1,10 @@
 """Contains main class to control switch."""
 
-from typing import List
+from typing import List, Union
 from selenium import webdriver as wd
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from .web_controller import WebController
-from .control_fields.control_field import ControlField
 from .control_fields.system import SystemControlField
 from .control_fields.switching import SwitchingControlField
 from .control_fields.monitoring import MonitoringControlField
@@ -77,7 +76,8 @@ class SwitchManager:
         self._destroy_control_fields()
         self._control_fields = {}
 
-    def control(self, control_field: str) -> ControlField:
+    def control(self, control_field: str) -> Union[SystemControlField, SwitchingControlField, MonitoringControlField,
+                                                   VLANControlField, QoSControlField, PoEControlField]:
         """
         Returns object to control particular section in admin web page - control field.
         There are 6 control sections: system, switching, monitoring, VLAN, QoS, PoE

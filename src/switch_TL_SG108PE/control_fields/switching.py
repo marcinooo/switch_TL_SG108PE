@@ -8,7 +8,8 @@ from selenium.webdriver.remote.webelement import WebElement
 from .control_field import ControlField
 from ..utils import Frame, get_port_label, get_lag_label, validate_port_id, validate_lag_id
 from ..port import STATUS, SPEED, FLOW_CONTROL
-from ..exceptions import LAGPortException, OptionDisabledException
+from ..exceptions import (PortSettingsException, IgmpSnoopingSettings, ReportMessageSuppressionSettings,
+                          LAGPortException, OptionDisabledException)
 
 
 class SwitchingControlField(ControlField):
@@ -40,7 +41,7 @@ class SwitchingControlField(ControlField):
         return ports_settings
 
     @ControlField.login_required
-    def set_port_settings(self, port: int, status: STATUS, speed: SPEED, flow_control: FLOW_CONTROL) -> bool:
+    def set_port_settings(self, port: int, status: STATUS, speed: SPEED, flow_control: FLOW_CONTROL) -> None:
         """
         Apply given settings for indicated port.
 
@@ -48,7 +49,10 @@ class SwitchingControlField(ControlField):
         :param status: status of port (enable / disable)
         :param speed: speed of port (auto / 10MH / 10MF / 100MH / 100MF / 1000Mf)
         :param flow_control: flow control enabled or disabled (on / off)
-        :return: True if port settings was applied successfully, otherwise False
+        :raises PortIdException: if port ID is invalid
+        :raises OptionDisabledException: if given port option is disabled in admin page
+        :raises PortSettingsException: if port settings was not applied successfully
+        :return: None
         """
         validate_port_id(port)
         port_label = get_port_label(port)
@@ -68,7 +72,12 @@ class SwitchingControlField(ControlField):
             raise OptionDisabledException(f'Option {flow_control} is disabled.')
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='apply']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise PortSettingsException(f'Cannot set "{status}", "{speed}", "{flow_control}" options '
+                                        f'for port NO {port} due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise PortSettingsException(alert_info)
 
     @ControlField.login_required
     def igmp_snooping(self) -> Dict[str, str]:
@@ -89,11 +98,12 @@ class SwitchingControlField(ControlField):
         return igmp_snooping_settings
 
     @ControlField.login_required
-    def enable_igmp_snooping(self) -> bool:
+    def enable_igmp_snooping(self) -> None:
         """
         Enables IGMP settings.
 
-        :return: True if IGMP settings was enabled successfully, otherwise False
+        :raises IgmpSnoopingSettings: if igmp snooping was not enabled successfully
+        :return: None
         """
         self.open_tab(self._MENU_SECTION, 'IGMP Snooping')
         self.web_controller.switch_to_frame(Frame.MAIN)
@@ -101,14 +111,19 @@ class SwitchingControlField(ControlField):
         enable_input.click()
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='Apply']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise IgmpSnoopingSettings('Cannot enable igmp snooping due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise IgmpSnoopingSettings(alert_info)
 
     @ControlField.login_required
-    def disable_igmp_snooping(self) -> bool:
+    def disable_igmp_snooping(self) -> None:
         """
         Disables IGMP settings.
 
-        :return: True if IGMP settings was disabled successfully, otherwise False
+        :raises IgmpSnoopingSettings: if igmp snooping was not disabled successfully
+        :return: None
         """
         self.open_tab(self._MENU_SECTION, 'IGMP Snooping')
         self.web_controller.switch_to_frame(Frame.MAIN)
@@ -116,14 +131,19 @@ class SwitchingControlField(ControlField):
         disable_input.click()
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='Apply']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise IgmpSnoopingSettings('Cannot disable igmp snooping due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise IgmpSnoopingSettings(alert_info)
 
     @ControlField.login_required
-    def enable_report_message_suppression(self) -> bool:
+    def enable_report_message_suppression(self) -> None:
         """
         Enables Report Message Suppression.
 
-        :return: True if Report Message Suppression was enabled successfully, otherwise False
+        :raises ReportMessageSuppressionSettings: if igmp snooping was not enabled successfully
+        :return: None
         """
         self.open_tab(self._MENU_SECTION, 'IGMP Snooping')
         self.web_controller.switch_to_frame(Frame.MAIN)
@@ -131,14 +151,19 @@ class SwitchingControlField(ControlField):
         enable_input.click()
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='Apply']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise ReportMessageSuppressionSettings('Cannot enable Report Message Suppression due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise ReportMessageSuppressionSettings(alert_info)
 
     @ControlField.login_required
-    def disable_report_message_suppression(self) -> bool:
+    def disable_report_message_suppression(self) -> None:
         """
         Disables Report Message Suppression.
 
-        :return: True if Report Message Suppression was disabled successfully, otherwise False
+        :raises ReportMessageSuppressionSettings: if igmp snooping was not disabled successfully
+        :return: None
         """
         self.open_tab(self._MENU_SECTION, 'IGMP Snooping')
         self.web_controller.switch_to_frame(Frame.MAIN)
@@ -146,7 +171,11 @@ class SwitchingControlField(ControlField):
         disable_input.click()
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='Apply']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise ReportMessageSuppressionSettings('Cannot disable Report Message Suppression due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise ReportMessageSuppressionSettings(alert_info)
 
     @ControlField.login_required
     def lag_settings(self) -> Dict[str, str]:
@@ -169,14 +198,17 @@ class SwitchingControlField(ControlField):
         return lag_settings
 
     @ControlField.login_required
-    def set_lag_ports(self, lag_id: int, ports: List[int]) -> bool:
+    def set_lag_ports(self, lag_id: int, ports: List[int]) -> None:
         """
         Sets given LAG for indicated ports. At least two ports should be passed.
         Mirroring port cannot be a trunk member port. Mirroring and mirrored port cannot be added to a LAG group.
 
         :param lag_id: id of LAG
         :param ports: list of ports
-        :return: True if ports were added to LAG group successfully
+        :raises LagIdException: if LAG ID is invalid
+        :raises PortIdException: if port ID is invalid
+        :raises LAGPortException: if user passed incorrect LAG ID or port assignment to LAG group failed
+        :return: None
         """
         validate_lag_id(lag_id)
         for port in ports:
@@ -195,18 +227,18 @@ class SwitchingControlField(ControlField):
         alert_info = self.get_alert_text()
         if not alert_info:
             raise LAGPortException('Cannot add port to LAG group due to unknown error.')
-        if alert_info == 'Mirroring port cannot be a trunk member port':
-            raise LAGPortException('Mirroring port cannot be a trunk member port. '
-                               'Mirroring and mirrored port cannot be added to a LAG group.')
-        return True
+        if alert_info != 'Operation successful.':
+            raise LAGPortException(alert_info)
 
     @ControlField.login_required
-    def unset_lag_ports(self, lag_id: int) -> bool:
+    def unset_lag_ports(self, lag_id: int) -> None:
         """
         Delete all ports from given LAG group.
 
         :param lag_id: id of LAG
-        :return: True if ports were deleted successfully, otherwise False
+        :raises LagIdException: if LAG ID is invalid
+        :raises LAGPortException: if deleting LAG group failed
+        :return: None
         """
         validate_lag_id(lag_id)
         self.open_tab(self._MENU_SECTION, 'LAG')
@@ -218,7 +250,11 @@ class SwitchingControlField(ControlField):
         input_checkbox.click()
         delete_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='setDelete']")
         self.apply_settings(*delete_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise LAGPortException('Cannot delete LAG group due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise LAGPortException(alert_info)
 
     def _find_igmp_snooping_input(self, input_id: str) -> WebElement:
         input_details = (By.XPATH, f"//input[@id='{input_id}']")

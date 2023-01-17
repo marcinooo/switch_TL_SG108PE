@@ -71,7 +71,7 @@ class ControlField:
         """
         alert_details = (By.XPATH, "//span[@id='sp_tip_svr']/span[@class='TIP_CONTENT']")
         try:
-            self.web_controller.wait_until_element_is_visible(*alert_details, timeout=5)
+            self.web_controller.wait_until_element_is_visible(*alert_details)
         except TpLinkSwitchException:
             return ''
         return self.web_controller.find_element(*alert_details).text

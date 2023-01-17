@@ -51,8 +51,8 @@ class TestSystem(unittest.TestCase):
         self.assertEqual(self.monitoring.mirroring_port().get('Mirroring Port'), '')
 
     def test_loop_prevention_managing(self):
-        self.assertEqual(self.monitoring.loop_prevention().get('Loop Prevention'), 'Disable')
-        self.monitoring.enable_loop_prevention()
         self.assertEqual(self.monitoring.loop_prevention().get('Loop Prevention'), 'Enable')
         self.monitoring.disable_loop_prevention()
         self.assertEqual(self.monitoring.loop_prevention().get('Loop Prevention'), 'Disable')
+        self.monitoring.enable_loop_prevention()
+        self.assertEqual(self.monitoring.loop_prevention().get('Loop Prevention'), 'Enable')

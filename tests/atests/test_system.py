@@ -28,16 +28,16 @@ class TestSystem(unittest.TestCase):
         old_device_description = system_info['Device Description']
 
         new_device_description = self._random_alphanumeric_string()
-        self.assertTrue(self.system.set_device_description(new_device_description))
+        self.system.set_device_description(new_device_description)
         system_info = self.system.system_info()
         current_device_description = system_info['Device Description']
         self.assertEqual(current_device_description, new_device_description)
 
-        self.assertTrue(self.system.set_device_description(old_device_description))
+        self.system.set_device_description(old_device_description)
 
     def test_led_managing(self):
-        self.assertTrue(self.system.led_off())
-        self.assertTrue(self.system.led_on())
+        self.assertIsNone(self.system.led_off())
+        self.assertIsNone(self.system.led_on())
 
     @staticmethod
     def _random_alphanumeric_string(length=16):

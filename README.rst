@@ -34,51 +34,51 @@ Methods are divided in sections:
 
 * system:
     * :python:`system_info() -> Dict[str, str]`
-    * :python:`set_device_description(description: str) -> bool`
+    * :python:`set_device_description(description: str) -> None`
     * :python:`ip_settings() -> Dict[str, str]`
-    * :python:`enable_dhcp_configuration() -> bool`
-    * :python:`disable_dhcp_configuration() -> bool`
-    * :python:`set_ip(ip_address: str, subnet_mask: str, default_gateway: str) -> bool`
-    * :python:`led_on() -> bool`
-    * :python:`led_off() -> bool`
+    * :python:`enable_dhcp_configuration() -> None`
+    * :python:`disable_dhcp_configuration() -> None`
+    * :python:`set_ip(ip_address: str, subnet_mask: str, default_gateway: str) -> None`
+    * :python:`led_on() -> None`
+    * :python:`led_off() -> None`
     * :python:`user_account() -> Dict[str, str]`
-    * :python:`set_user_account_details(username: str, current_password: str, new_password: str, confirm_password: str) -> bool`
+    * :python:`set_user_account_details(username: str, current_password: str, new_password: str, confirm_password: str) -> None`
 * switching:
     * :python:`ports_settings() -> Dict[str, Dict[str, str]]`
-    * :python:`set_port_settings(port: int, status: STATUS, speed: SPEED, flow_control: FLOW_CONTROL) -> bool`
+    * :python:`set_port_settings(port: int, status: STATUS, speed: SPEED, flow_control: FLOW_CONTROL) -> None`
     * :python:`igmp_snooping() -> Dict[str, str]`
-    * :python:`enable_igmp_snooping() -> bool`
-    * :python:`disable_igmp_snooping() -> bool`
-    * :python:`enable_report_message_suppression() -> bool`
-    * :python:`disable_report_message_suppression() -> bool`
+    * :python:`enable_igmp_snooping() -> None`
+    * :python:`disable_igmp_snooping() -> None`
+    * :python:`enable_report_message_suppression() -> None`
+    * :python:`disable_report_message_suppression() -> None`
     * :python:`lag_settings() -> Dict[str, str]`
-    * :python:`set_lag_ports(lag_id: int, ports: List[int]) -> bool`
-    * :python:`unset_lag_ports(lag_id: int) -> bool`
+    * :python:`set_lag_ports(lag_id: int, ports: List[int]) -> None`
+    * :python:`unset_lag_ports(lag_id: int) -> None`
 * monitoring:
     * :python:`port_statistics(refresh: bool = True) -> Dict[str, Dict[str, str]]`
-    * :python:`refresh_port_statistics() -> bool`
+    * :python:`refresh_port_statistics() -> None`
     * :python:`mirrored_ports() -> Dict[str, Dict[str, str]]`
     * :python:`mirroring_port() -> Dict[str, str]`
-    * :python:`enable_port_mirroring(mirrored_ports: List[int], mirroring_port: int, ingress: bool = True, egress: bool = True) -> bool`
-    * :python:`disable_port_mirroring() -> bool`
+    * :python:`enable_port_mirroring(mirrored_ports: List[int], mirroring_port: int, ingress: bool = True, egress: bool = True) -> None`
+    * :python:`disable_port_mirroring() -> None`
     * :python:`loop_prevention() -> Dict[str, str]`
-    * :python:`enable_loop_prevention() -> bool`
-    * :python:`disable_loop_prevention() -> bool`
+    * :python:`enable_loop_prevention() -> None`
+    * :python:`disable_loop_prevention() -> None`
 * VLAN:
     * :python:`mtu_vlan_configuration() -> Dict[str, str]`
-    * :python:`enable_mtu_vlan_configuration() -> bool`
-    * :python:`disable_mtu_vlan_configuration() -> bool`
-    * :python:`change_mtu_vlan_uplink_port(port: int) -> bool`
+    * :python:`enable_mtu_vlan_configuration() -> None`
+    * :python:`disable_mtu_vlan_configuration() -> None`
+    * :python:`change_mtu_vlan_uplink_port(port: int) -> None`
     * :python:`port_based_vlan_configuration() -> Dict[str, Union[List[str], str]]`
-    * :python:`enable_port_based_vlan_configuration() -> bool`
-    * :python:`disable_port_based_vlan_configuration() -> bool`
-    * :python:`add_port_based_vlan(vlan_id: int, ports: List[int]) -> bool`
-    * :python:`remove_port_based_vlan(vlan_id: int) -> bool`
+    * :python:`enable_port_based_vlan_configuration() -> None`
+    * :python:`disable_port_based_vlan_configuration() -> None`
+    * :python:`add_port_based_vlan(vlan_id: int, ports: List[int]) -> None`
+    * :python:`remove_port_based_vlan(vlan_id: int) -> None`
     * :python:`ieee_802_1q_vlan_configuration() -> Dict[str, str]`
-    * :python:`enable_ieee_802_1q_vlan_configuration() -> bool`
-    * :python:`disable_ieee_802_1q_vlan_configuration() -> bool`
-    * :python:`add_ieee_802_1q_vlan(vlan_id: int, ports: List[IEEE8021QPort], vlan_name: str = '') -> bool`
-    * :python:`remove_ieee_802_1q_vlan(vlan_id: int) -> bool`
+    * :python:`enable_ieee_802_1q_vlan_configuration() -> None`
+    * :python:`disable_ieee_802_1q_vlan_configuration() -> None`
+    * :python:`add_ieee_802_1q_vlan(vlan_id: int, ports: List[IEEE8021QPort], vlan_name: str = '') -> None`
+    * :python:`remove_ieee_802_1q_vlan(vlan_id: int) -> None`
 
 
 Documentation

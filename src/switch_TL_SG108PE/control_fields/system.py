@@ -7,7 +7,8 @@ from selenium.webdriver.support.ui import Select
 
 from .control_field import ControlField
 from ..utils import Frame
-from ..exceptions import InvalidDescriptionException, InvalidUserAccountDetailsException, DHCPSettingsEnabledException
+from ..exceptions import (DeviceDescriptionException, IpSettingException, ChangeLedStateException,
+                          InvalidUserAccountDetailsException, DhcpSettingsException)
 
 
 class SystemControlField(ControlField):
@@ -42,16 +43,17 @@ class SystemControlField(ControlField):
         return system_info
 
     @ControlField.login_required
-    def set_device_description(self, description: str) -> bool:
+    def set_device_description(self, description: str) -> None:
         """
         Sets name of switch visible in network.
 
-        :param description: name of device
-        :return: True if name was successfully changed, otherwise False
+        :param description: new name of device
+        :raises DeviceDescriptionException: if user passed too long description or label was not set successfully
+        :return: None
         """
         description = str(description)
         if len(description) > 32:
-            raise InvalidDescriptionException('The length of device description should not be more than 32 characters.')
+            raise DeviceDescriptionException('The length of device description should not be more than 32 characters.')
         self.open_tab(self._MENU_SECTION, 'System Info')
         self.web_controller.switch_to_frame(Frame.MAIN)
         input_field_details = (By.XPATH, "//input[@id='tDevDscr']")
@@ -60,8 +62,12 @@ class SystemControlField(ControlField):
         input_field.clear()
         input_field.send_keys(description)
         apply_button_details = (By.XPATH, "//input[@id='btApply']")
-        self.web_controller.find_element(*apply_button_details).click()
-        return self.wait_for_success_alert()
+        self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise DeviceDescriptionException(f'Cannot set "{description}" description due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise DeviceDescriptionException(alert_info)
 
     @ControlField.login_required
     def ip_settings(self) -> Dict[str, str]:
@@ -87,64 +93,75 @@ class SystemControlField(ControlField):
         return ip_info
 
     @ControlField.login_required
-    def enable_dhcp_configuration(self) -> bool:
+    def enable_dhcp_configuration(self) -> None:
         """
         Enables the function of automatic host retrieval from dhcp server in the network.
 
-        :return: True if settings was successfully enabled, otherwise False
+        :raises DhcpSettingsException: if dhcp configuration was not enabled successfully
+        :return: None
         """
-        return self._select_dhcp_option_in_ip_settings('Enable')
+        self._select_dhcp_option_in_ip_settings('Enable')
 
     @ControlField.login_required
-    def disable_dhcp_configuration(self) -> bool:
+    def disable_dhcp_configuration(self) -> None:
         """
         Disables the function of automatic host retrieval from dhcp server in the network.
         User should configure host manually.
 
-        :return: True if settings was successfully disabled, otherwise False
+        :raises DhcpSettingsException: if dhcp configuration was not disabled successfully
+        :return: None
         """
-        return self._select_dhcp_option_in_ip_settings('Disable')
+        self._select_dhcp_option_in_ip_settings('Disable')
 
     @ControlField.login_required
-    def set_ip(self, ip_address: str, subnet_mask: str, default_gateway: str) -> bool:
+    def set_ip(self, ip_address: str, subnet_mask: str, default_gateway: str) -> None:
         """
         Sets switch host, netmask, gateway. It works only if dhcp configuration is disabled.
         :param ip_address: switch host
         :param subnet_mask: mask dedicated for host
         :param default_gateway: gateway for switch network
-        :return: True if host details was configured successfully, otherwise False
+        :raises DhcpSettingsException: if dhcp settings are not enabled
+        :raises IpSettingException: if ips were not set successfully
+        :return: None
         """
         ipaddress.ip_address(ip_address)
         ipaddress.ip_address(subnet_mask)
         ipaddress.ip_address(default_gateway)
         ip_settings = self.ip_settings()
         if ip_settings['DHCP Setting'] != 'disable':
-            raise DHCPSettingsEnabledException('DHCP settings are enabled. '
-                                           'Disable it to set own host. Use "disable_dhcp_settings()" method.')
+            raise DhcpSettingsException('DHCP settings are enabled. '
+                                        'Disable it to set own host. Use "disable_dhcp_settings()" method.')
         self._enter_text_value_in_input_filed(ip_address, 'txt_addr')
         self._enter_text_value_in_input_filed(subnet_mask, 'txt_mask')
         self._enter_text_value_in_input_filed(default_gateway, 'txt_gateway')
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='submit']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise IpSettingException(
+                f'Cannot set "{ip_address}", "{subnet_mask}", "{default_gateway}" due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise IpSettingException(f'{alert_info}')
 
     @ControlField.login_required
-    def led_on(self) -> bool:
+    def led_on(self) -> None:
         """
         Turns on led in front site switch panel.
 
-        :return: True if led was turned on, otherwise False
+        :raises ChangeLedStateException: if LED was not turn on successfully
+        :return: None
         """
-        return self._select_led_radio_in_led_settings('on')
+        self._select_led_radio_in_led_settings('on')
 
     @ControlField.login_required
-    def led_off(self) -> bool:
+    def led_off(self) -> None:
         """
         Turns off led in front site switch panel.
 
-        :return: True if led was turned off, otherwise False
+        :raises ChangeLedStateException: if LED was not turn off successfully
+        :return: None
         """
-        return self._select_led_radio_in_led_settings('off')
+        self._select_led_radio_in_led_settings('off')
 
     @ControlField.login_required
     def user_account(self) -> Dict[str, str]:
@@ -162,7 +179,7 @@ class SystemControlField(ControlField):
 
     @ControlField.login_required
     def set_user_account_details(self, username: str, current_password: str, new_password: str,
-                                 confirm_password: str) -> bool:
+                                 confirm_password: str) -> None:
         """
         Sets new username and password for admin account.
 
@@ -170,7 +187,8 @@ class SystemControlField(ControlField):
         :param current_password: old password
         :param new_password: new password
         :param confirm_password: new password (confirmation)
-        :return: True if details was set successfully
+        :raises InvalidUserAccountDetailsException: if user details was not set successfully
+        :return: None
         """
         self.open_tab(self._MENU_SECTION, 'User Account')
         self.web_controller.switch_to_frame(Frame.MAIN)
@@ -188,7 +206,6 @@ class SystemControlField(ControlField):
             )
         if alert_info != 'Operation successful.':
             raise InvalidUserAccountDetailsException(f'Cannot set users details: {alert_info}')
-        return True
 
     def _enter_text_value_in_input_filed(self, value: str, input_id: str) -> None:
         input_field_details = (By.XPATH, f"//input[@id='{input_id}']")
@@ -197,7 +214,7 @@ class SystemControlField(ControlField):
         input_field.clear()
         input_field.send_keys(value)
 
-    def _select_dhcp_option_in_ip_settings(self, action: str = 'Enable') -> bool:
+    def _select_dhcp_option_in_ip_settings(self, action: str = 'Enable') -> None:
         self.open_tab(self._MENU_SECTION, 'IP Setting')
         self.web_controller.switch_to_frame(Frame.MAIN)
         dhcp_settings_select_details = (By.XPATH, "//select[@id='check_dhcp']")
@@ -206,9 +223,13 @@ class SystemControlField(ControlField):
         dhcp_settings_select.select_by_visible_text(action)
         apply_button_details = (By.XPATH, "//td[@class='BTN_WRAPPER']/a/input[@name='submit']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=True)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise DhcpSettingsException(f'Cannot select "{action}" in dhcp configuration due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise DhcpSettingsException(alert_info)
 
-    def _select_led_radio_in_led_settings(self, action: str = 'on') -> bool:
+    def _select_led_radio_in_led_settings(self, action: str = 'on') -> None:
         self.open_tab(self._MENU_SECTION, 'LED On/Off')
         self.web_controller.switch_to_frame(Frame.MAIN)
         led_on_radio_details = (By.XPATH, f"//input[@id='led_{action}']")
@@ -217,4 +238,8 @@ class SystemControlField(ControlField):
         led_on_radio.click()
         apply_button_details = (By.XPATH, "//td/a[@class='BTN']/input[@name='led_cfg']")
         self.apply_settings(*apply_button_details, wait_for_confirmation_alert=False)
-        return self.wait_for_success_alert()
+        alert_info = self.get_alert_text()
+        if not alert_info:
+            raise ChangeLedStateException(f'Cannot set "{action}" state on LED due to unknown error.')
+        if alert_info != 'Operation successful.':
+            raise ChangeLedStateException(alert_info)
