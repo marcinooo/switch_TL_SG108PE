@@ -4,4 +4,5 @@ python-dotenv
 pytest
 pylint
 sphinx
+sphinxemoji
 furo
