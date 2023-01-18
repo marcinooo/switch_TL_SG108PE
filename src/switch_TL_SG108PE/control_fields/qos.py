@@ -30,8 +30,8 @@ class QoSControlField(ControlField):
             mode_input = self._find_qos_mode_input(iid)
             if mode_input.is_selected():
                 td_details = (By.XPATH, '..')
-                td = mode_input.find_element(*td_details)
-                return td.text.strip()
+                td_element = mode_input.find_element(*td_details)
+                return td_element.text.strip()
         raise QoSModeException('Cannot get QoS mode.')
 
     def set_port_base_qos_mode(self) -> None:
@@ -46,7 +46,7 @@ class QoSControlField(ControlField):
         self._select_and_apply_qos_mode('rd_portbase')
         alert_info = self.get_alert_text()
         if not alert_info:
-            raise QoSModeException(f'Cannot activate Port Based	QoS mode due to unknown error.')
+            raise QoSModeException('Cannot activate Port Based	QoS mode due to unknown error.')
         if alert_info != 'Operation successful.':
             raise QoSModeException(alert_info)
 
@@ -62,7 +62,7 @@ class QoSControlField(ControlField):
         self._select_and_apply_qos_mode('rd_8021pbase')
         alert_info = self.get_alert_text()
         if not alert_info:
-            raise QoSModeException(f'Cannot activate 802.1P Based QoS mode due to unknown error.')
+            raise QoSModeException('Cannot activate 802.1P Based QoS mode due to unknown error.')
         if alert_info != 'Operation successful.':
             raise QoSModeException(alert_info)
 
@@ -78,7 +78,7 @@ class QoSControlField(ControlField):
         self._select_and_apply_qos_mode('rx_dscp')
         alert_info = self.get_alert_text()
         if not alert_info:
-            raise QoSModeException(f'Cannot activate DSCP/802.1P Based mode due to unknown error.')
+            raise QoSModeException('Cannot activate DSCP/802.1P Based mode due to unknown error.')
         if alert_info != 'Operation successful.':
             raise QoSModeException(alert_info)
 
@@ -141,6 +141,3 @@ class QoSControlField(ControlField):
         self.web_controller.wait_until_element_is_present(*input_details)
         mode_input = self.web_controller.find_element(*input_details)
         return mode_input
-
-
-
