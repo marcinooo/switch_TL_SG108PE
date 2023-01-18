@@ -4,11 +4,11 @@ import unittest
 from tests.atests.utils import set_up_environment_variables
 
 from switch_TL_SG108PE.switch_manager import SwitchManager
-from switch_TL_SG108PE.exceptions import MtuVlanIsNotEnabled, VlanConfigurationIsNotEnabledException
+from switch_TL_SG108PE.exceptions import MtuVlanException, VlanConfigurationIsNotEnabledException
 from switch_TL_SG108PE.port import IEEE8021QPort
 
 
-class TestSystem(unittest.TestCase):
+class TestVLAN(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -26,22 +26,22 @@ class TestSystem(unittest.TestCase):
         mtu_vlan_status = self.vlan.mtu_vlan_configuration()['MTU VLAN Configuration']
         self.assertEqual(mtu_vlan_status, 'Disable')
 
-        self.assertTrue(self.vlan.enable_mtu_vlan_configuration())
+        self.vlan.enable_mtu_vlan_configuration()
         mtu_vlan_status = self.vlan.mtu_vlan_configuration()['MTU VLAN Configuration']
         self.assertEqual(mtu_vlan_status, 'Enable')
 
         # Test valid changing
-        self.assertTrue(self.vlan.change_mtu_vlan_uplink_port(1))
+        self.vlan.change_mtu_vlan_uplink_port(1)
         mtu_vlan_uplink_port = self.vlan.mtu_vlan_configuration()['Current Uplink Port']
         self.assertEqual(mtu_vlan_uplink_port, '1')
 
-        self.assertTrue(self.vlan.disable_mtu_vlan_configuration())
+        self.vlan.disable_mtu_vlan_configuration()
         mtu_vlan_status = self.vlan.mtu_vlan_configuration()['MTU VLAN Configuration']
         self.assertEqual(mtu_vlan_status, 'Disable')
 
         # Test invalid changing
         self.assertRaises(
-            MtuVlanIsNotEnabled,
+            MtuVlanException,
             lambda: self.vlan.change_mtu_vlan_uplink_port(7)
         )
 
@@ -49,7 +49,7 @@ class TestSystem(unittest.TestCase):
         port_based_vlan_status = self.vlan.port_based_vlan_configuration()['Port Based VLAN Configuration']
         self.assertEqual(port_based_vlan_status, 'Disable')
 
-        self.assertTrue(self.vlan.enable_port_based_vlan_configuration())
+        self.vlan.enable_port_based_vlan_configuration()
         port_based_vlan_status = self.vlan.port_based_vlan_configuration()['Port Based VLAN Configuration']
         self.assertEqual(port_based_vlan_status, 'Enable')
 
@@ -65,7 +65,7 @@ class TestSystem(unittest.TestCase):
         vlan = next(filter(lambda v: v['VLAN ID'] == 6, vlans), None)
         self.assertIsNone(vlan)
 
-        self.assertTrue(self.vlan.disable_port_based_vlan_configuration())
+        self.vlan.disable_port_based_vlan_configuration()
         port_based_vlan_status = self.vlan.port_based_vlan_configuration()['Port Based VLAN Configuration']
         self.assertEqual(port_based_vlan_status, 'Disable')
 
@@ -79,7 +79,7 @@ class TestSystem(unittest.TestCase):
         ieee_802_1q_vlan_status = self.vlan.ieee_802_1q_vlan_configuration()['802.1Q VLAN Configuration']
         self.assertEqual(ieee_802_1q_vlan_status, 'Disable')
 
-        self.assertTrue(self.vlan.enable_ieee_802_1q_vlan_configuration())
+        self.vlan.enable_ieee_802_1q_vlan_configuration()
         ieee_802_1q_vlan_status = self.vlan.ieee_802_1q_vlan_configuration()['802.1Q VLAN Configuration']
         self.assertEqual(ieee_802_1q_vlan_status, 'Enable')
 
@@ -104,7 +104,7 @@ class TestSystem(unittest.TestCase):
         vlan = next(filter(lambda v: v['VLAN ID'] == 6, vlans), None)
         self.assertIsNone(vlan)
 
-        self.assertTrue(self.vlan.disable_ieee_802_1q_vlan_configuration())
+        self.vlan.disable_ieee_802_1q_vlan_configuration()
         ieee_802_1q_vlan_status = self.vlan.ieee_802_1q_vlan_configuration()['802.1Q VLAN Configuration']
         self.assertEqual(ieee_802_1q_vlan_status, 'Disable')
 

@@ -7,7 +7,7 @@ from switch_TL_SG108PE.switch_manager import SwitchManager
 from switch_TL_SG108PE.port import STATUS, SPEED, FLOW_CONTROL
 
 
-class TestSystem(unittest.TestCase):
+class TestSwitching(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:

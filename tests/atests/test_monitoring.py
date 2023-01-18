@@ -7,7 +7,7 @@ from tests.atests.utils import set_up_environment_variables
 from switch_TL_SG108PE.switch_manager import SwitchManager
 
 
-class TestSystem(unittest.TestCase):
+class TestMonitoring(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -51,8 +51,8 @@ class TestSystem(unittest.TestCase):
         self.assertEqual(self.monitoring.mirroring_port().get('Mirroring Port'), '')
 
     def test_loop_prevention_managing(self):
-        self.assertEqual(self.monitoring.loop_prevention().get('Loop Prevention'), 'Disable')
-        self.monitoring.enable_loop_prevention()
         self.assertEqual(self.monitoring.loop_prevention().get('Loop Prevention'), 'Enable')
         self.monitoring.disable_loop_prevention()
         self.assertEqual(self.monitoring.loop_prevention().get('Loop Prevention'), 'Disable')
+        self.monitoring.enable_loop_prevention()
+        self.assertEqual(self.monitoring.loop_prevention().get('Loop Prevention'), 'Enable')

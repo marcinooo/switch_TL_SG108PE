@@ -1,33 +1,40 @@
-====================================================
-Library to control network switch tp-link TL-SG108PE
-====================================================
 
-.. image:: https://circleci.com/gh/marcinooo/switch_TL_SG108PE/tree/main.svg?style=svg
-    :target: https://circleci.com/gh/marcinooo/switch_TL_SG108PE/?branch=main
+Usage
+=====
+
+Let's consider an example:
+
+.. literalinclude :: ../../examples/01_get_system_information.py
+   :language: python
+
+As we can see in the example, the main package is ``switch_TL_SG108PE``.
+It provides the ``SwitchManager()`` class that is a client for managing the switch via a website.
+The first step is to connect switch_manager to the switch using the ``connect()`` method.
+Then we select the section to manage. In our case it is the *system* section.
+The vlan object provides methods that allow us to perform selected actions on the switch.
+After carrying out the action on the switch, switch_manager should be disconnected.
+
+Results:
+
+.. code::
+
+   $ python 01_get_system_information.py
+   {'Device Description': 'TL-SG108PE',
+    'MAC Address': 'E4:C3:2A:BD:FF:F0',
+    'IP Address': '192.168.1.42',
+    'Subnet Mask': '255.255.255.0',
+    'Default Gateway': '192.168.1.1',
+    'Firmware Version': '1.0.0 Build 20200415 Rel.54962',
+    'Hardware Version': 'TL-SG108PE 3.0'}
 
 
-|
+The above workflow is consistent with manually configuring the switch as shown in the image below:
 
-:Author: marcinooo
-:Tags: Python, Selenium, tp-link, switch, TL-SG108PE, Library
-
-:abstract:
-
-   Library to control switch via admin page.
-
-.. contents ::
+.. image:: images/01_get_system_information.png
+   :alt: basic usage
 
 
-Description
-===========
-
-Switch tp-link TL-SG108PE:
-
-.. image:: switch_tp_link_TL_SG108PE.jpg
-    :alt: tp-link TL-SG108PE
-
-Above switch can be control from Python code. It implements methods to manage main switch settings.
-Methods are divided in sections:
+In a similar way, we can control sections:
 
 .. role:: python(code)
    :language: python
@@ -87,68 +94,3 @@ Methods are divided in sections:
    * :python:`priority_queue_port_settings(self) -> Dict[str, str]`
    * :python:`set_priority_queue_in_port_based_qos_mode(self, port: int, priority_queue: PriorityQueue) -> None`
 
-
-Documentation
--------------
-
-Documentation can be found under: <url - soon>
-
-
-Usage
-=====
-
-An example of using the library to create port based VLAN.
-
-Before running script install library. Next set environment variables in console via commands:
-
-``$ export ADMIN_IP=<switch ip>``
-
-``$ export ADMIN_USERNAME=<admin username>``
-
-``$ export ADMIN_PASSWORD=<admin password>``
-
-
-.. code:: python
-
-    import os
-    from switch_TL_SG108PE.switch_manager import SwitchManager
-
-
-    # set required system variables before running script (example for Linux system)
-    # $ export ADMIN_IP=<switch ip>
-    # $ export ADMIN_USERNAME=<admin username>
-    # $ export ADMIN_PASSWORD=<admin password>
-
-    switch_manager = SwitchManager()
-    switch_manager.connect(os.environ['ADMIN_IP'],
-                           os.environ['ADMIN_USERNAME'],
-                           os.environ['ADMIN_PASSWORD'])
-    system = switch_manager.control('system')
-    info = system.system_info()
-    print(info)
-
-
-More examples can be found in documentation :wink:.
-
-
-Installation
-============
-
-Install from PyPI:
-
-``$ pip install switch_TL_SG108PE``
-
-Install from github:
-
-``$ pip install git+https://github.com/marcinooo/switch_TL_SG108PE``
-
-
-License
-=======
-
-license_ (MIT)
-
-.. _license: https://github.com/marcinooo/switch_TL_SG108PE/blob/main/LICENSE.txt
-
-.. role:: python(code)
-   :language: python

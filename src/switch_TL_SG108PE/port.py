@@ -45,6 +45,14 @@ class FLOW_CONTROL(Enum):  # pylint: disable=invalid-name
     OFF = 'Off'
 
 
+class PriorityQueue(Enum):
+    """QoS Priority Queue for given port."""
+    LOWEST_1 = '1(Lowest)'
+    NORMAL_2 = '2(Normal)'
+    MEDIUM_3 = '3(Medium)'
+    HIGHEST_4 = '4(Highest)'
+
+
 @dataclass
 class IEEE8021QPort:
     """Port object with required artifacts for VLAN 802.1Q settings."""

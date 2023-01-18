@@ -28,6 +28,7 @@ class WebController:
     def login(self) -> None:
         """
         Login user in admin web page of switch.
+
         :return: None
         """
         self.webdriver.get(f'http://{self.host}')
@@ -46,6 +47,7 @@ class WebController:
     def logout(self) -> None:
         """
         Logout user from admin web page of switch.
+
         :return: None
         """
         self.switch_to_frame(Frame.MENU)
@@ -60,6 +62,7 @@ class WebController:
     def is_logged_in(self) -> bool:
         """
         Checks if client is authenticated.
+
         :return: True if it is, otherwise False
         """
         self.switch_to_default_content()
@@ -73,6 +76,7 @@ class WebController:
     def quit(self) -> None:
         """
         Quits web browser.
+
         :return: None
         """
         self.webdriver.quit()
@@ -81,6 +85,7 @@ class WebController:
         """
         Changes current frame. Switch admin page consists of many frames like sidebar navigation frame,
         main content frame... To manipulate content of frame we need to activate it before.
+
         :param frame_name: name of frame
         :return: None
         """
@@ -94,6 +99,7 @@ class WebController:
     def switch_to_default_content(self) -> None:
         """
         Switches to default content of page. It disables active frame.
+
         :return: None
         """
         self.webdriver.switch_to.default_content()
@@ -102,6 +108,7 @@ class WebController:
     def find_element(self, method: By, query: str) -> WebElement:
         """
         Finds first element with matching query and returns it.
+
         :param method: used to specify which attribute is used to locate elements on a page
         :param query: key used to locate elements on a page
         :return: found element
@@ -111,6 +118,7 @@ class WebController:
     def find_elements(self, method: By, query: str) -> List[WebElement]:
         """
         Finds multiple elements with matching query and returns them.
+
         :param method: used to specify which attribute is used to locate elements on a page
         :param query: key used to locate elements on a page
         :return: found elements
@@ -120,6 +128,7 @@ class WebController:
     def click_element_with_control_key_pressed(self, element: WebElement) -> None:
         """
         Clicks given element with Ctrl key pressed.
+
         :param element: element to click
         :return: None
         """
@@ -130,6 +139,7 @@ class WebController:
         """
         Waits until given element is present on web page.
         If element wasn't be found on web page an error will be raised.
+
         :param method: used to specify which attribute is used to locate elements on a page
         :param query: key used to locate elements on a page
         :param timeout: maximum time of waiting
@@ -147,6 +157,7 @@ class WebController:
         """
         Waits until given element is visible on web page.
         If element wasn't be found on web page an error will be raised.
+
         :param method: used to specify which attribute is used to locate elements on a page
         :param query: key used to locate elements on a page
         :param timeout: maximum time of waiting
@@ -163,6 +174,7 @@ class WebController:
         """
         Waits until given alert is present on web page.
         If alert wasn't be found on web page an error will be raised.
+
         :param timeout: maximum time of waiting
         :param exception: exception object raised in case of error
         :return: None

@@ -1,11 +1,10 @@
 """Contains main class to control switch."""
 
-from typing import List
+from typing import List, Union
 from selenium import webdriver as wd
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from .web_controller import WebController
-from .control_fields.control_field import ControlField
 from .control_fields.system import SystemControlField
 from .control_fields.switching import SwitchingControlField
 from .control_fields.monitoring import MonitoringControlField
@@ -30,6 +29,7 @@ class SwitchManager:
     def connect(self, host: str, login: str, password: str, headless: bool = True, webdriver: WebDriver = None) -> None:
         """
         Connects SwitchManager to admin web page of switch.
+
         :param host: host address of switch
         :param login: name of login
         :param password: secret password
@@ -63,6 +63,7 @@ class SwitchManager:
     def disconnect(self) -> None:
         """
         Disconnects SwitchManager from admin web page of switch.
+
         :return: None
         """
         self._web_controller.logout()
@@ -75,10 +76,12 @@ class SwitchManager:
         self._destroy_control_fields()
         self._control_fields = {}
 
-    def control(self, control_field: str) -> ControlField:
+    def control(self, control_field: str) -> Union[SystemControlField, SwitchingControlField, MonitoringControlField,
+                                                   VLANControlField, QoSControlField, PoEControlField]:
         """
         Returns object to control particular section in admin web page - control field.
         There are 6 control sections: system, switching, monitoring, VLAN, QoS, PoE
+
         :param control_field: name of control field (according to sidebar navigation in admin web page)
         :return: given control field
         """
@@ -93,6 +96,7 @@ class SwitchManager:
     def get_control_fields(self) -> List[str]:
         """
         Returns list of possible control fields according to sidebar navigation in admin web page.
+
         :return: control fields
         """
         return list(self._control_fields.keys())

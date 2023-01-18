@@ -1,6 +1,7 @@
 """Contains code to manage elements visible on given section form menu. It is common for all sections."""
 
 from typing import Callable
+from functools import wraps
 from selenium.webdriver.common.by import By
 
 from ..utils import Frame
@@ -17,9 +18,11 @@ class ControlField:
     def login_required(func: Callable) -> Callable:
         """
         Decorator to check if client is login. If client is not login it will try login again.
+
         :param func: function to decorate
         :return: internal wrapper
         """
+        @wraps(func)
         def inner(self, *args, **kwargs):
             if not self.web_controller.is_logged_in():
                 self.web_controller.login()
@@ -29,6 +32,7 @@ class ControlField:
     def open_tab(self, section: str, tab: str) -> None:
         """
         Opens given tab from menu in admin page of switch.
+
         :param section: main manu section (e.g. System)
         :param tab: subsection from menu (e.g. System Info)
         :return: None
@@ -49,6 +53,7 @@ class ControlField:
     def wait_for_success_alert(self) -> bool:
         """
         Waits for success html alert.
+
         :return: True if an alert was occurred, otherwise False
         """
         confirmation_alert_details = (By.XPATH, "//span[contains(text(), 'Operation successful.')]")
@@ -61,11 +66,12 @@ class ControlField:
     def get_alert_text(self) -> str:
         """
         Returns alert text.
+
         :return: text
         """
         alert_details = (By.XPATH, "//span[@id='sp_tip_svr']/span[@class='TIP_CONTENT']")
         try:
-            self.web_controller.wait_until_element_is_visible(*alert_details, timeout=5)
+            self.web_controller.wait_until_element_is_visible(*alert_details)
         except TpLinkSwitchException:
             return ''
         return self.web_controller.find_element(*alert_details).text
@@ -73,6 +79,7 @@ class ControlField:
     def apply_settings(self, method: By, query: str, wait_for_confirmation_alert: bool = False) -> None:
         """
         Applies given configuration from filled form. It searches apply button and clicks it.
+
         :param method: used to specify which attribute is used to locate elements on a page
         :param query: key used to locate elements on a page
         :param wait_for_confirmation_alert: indicates if method should wait for browser alert to confirm applying

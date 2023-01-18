@@ -3,3 +3,5 @@ ddt
 python-dotenv
 pytest
 pylint
+sphinx
+furo
