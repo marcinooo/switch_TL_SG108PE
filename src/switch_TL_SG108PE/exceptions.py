@@ -49,7 +49,7 @@ class DhcpSettingsException(TpLinkSwitchException):
 
 
 class IpSettingException(TpLinkSwitchException):
-    """Thrown when given ip can not be applied."""
+    """Thrown when given ip cannot be applied."""
 
 
 class ChangeLedStateException(TpLinkSwitchException):
@@ -68,7 +68,7 @@ class OptionDisabledException(TpLinkSwitchException):
 
 
 class PortSettingsException(TpLinkSwitchException):
-    """Thrown when given settings can not be applied for given port."""
+    """Thrown when given settings cannot be applied for given port."""
 
 
 class IgmpSnoopingSettings(TpLinkSwitchException):
@@ -87,11 +87,11 @@ class LAGPortException(TpLinkSwitchException):
 
 
 class MirroringPortException(TpLinkSwitchException):
-    """Thrown when given mirroring port can not be set."""
+    """Thrown when given mirroring port cannot be set."""
 
 
 class MirroredPortException(TpLinkSwitchException):
-    """Thrown when given mirrored port can not be set."""
+    """Thrown when given mirrored port cannot be set."""
 
 
 class PortMirroringSettingsException(TpLinkSwitchException):
@@ -110,7 +110,7 @@ class MtuVlanException(TpLinkSwitchException):
 
 
 class MtuVlanUplinkPort(TpLinkSwitchException):
-    """Thrown when given port can not be set as mtu uplink port."""
+    """Thrown when given port cannot be set as mtu uplink port."""
 
 
 class PortBaseVlanException(TpLinkSwitchException):
@@ -127,3 +127,14 @@ class VlanConfigurationIsNotEnabledException(TpLinkSwitchException):
 
 class IEEE8021QVlanException(TpLinkSwitchException):
     """Thrown when user manage 802.1Q vlan in incorrect way."""
+
+
+# <=><=><=><=><=><=><=> QOS <=><=><=><=><=><=><=>
+
+
+class QoSModeException(TpLinkSwitchException):
+    """Thrown when given QoS mode cannot be set."""
+
+
+class QoSPriorityQueueException(TpLinkSwitchException):
+    """Thrown when Priority Queue cannot be set."""

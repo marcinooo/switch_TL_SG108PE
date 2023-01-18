@@ -7,7 +7,7 @@ from tests.atests.utils import set_up_environment_variables
 from switch_TL_SG108PE.switch_manager import SwitchManager
 
 
-class TestSystem(unittest.TestCase):
+class TestMonitoring(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:

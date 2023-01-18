@@ -79,6 +79,13 @@ Methods are divided in sections:
     * :python:`disable_ieee_802_1q_vlan_configuration() -> None`
     * :python:`add_ieee_802_1q_vlan(vlan_id: int, ports: List[IEEE8021QPort], vlan_name: str = '') -> None`
     * :python:`remove_ieee_802_1q_vlan(vlan_id: int) -> None`
+* QoS:
+   * :python:`qos_mode(self) -> str`
+   * :python:`set_port_base_qos_mode(self) -> None`
+   * :python:`set_802_1p_based_qos_mode(self) -> None`
+   * :python:`set_dscp_802_1p_based_qos_mode(self) -> None`
+   * :python:`priority_queue_port_settings(self) -> Dict[str, str]`
+   * :python:`set_priority_queue_in_port_based_qos_mode(self, port: int, priority_queue: PriorityQueue) -> None`
 
 
 Documentation

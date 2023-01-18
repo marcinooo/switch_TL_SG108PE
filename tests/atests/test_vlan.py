@@ -8,7 +8,7 @@ from switch_TL_SG108PE.exceptions import MtuVlanException, VlanConfigurationIsNo
 from switch_TL_SG108PE.port import IEEE8021QPort
 
 
-class TestSystem(unittest.TestCase):
+class TestVLAN(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
