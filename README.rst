@@ -91,8 +91,7 @@ Methods are divided in sections:
 Documentation
 -------------
 
-Documentation can be found under: <url - soon>
-
+Documentation can be found `here <https://switch-tl-sg108pe.readthedocs.io/en/latest/>`_ :smiley:.
 
 Usage
 =====
