@@ -26,6 +26,15 @@ Switch tp-link TL-SG108PE:
 .. image:: switch_tp_link_TL_SG108PE.jpg
     :alt: tp-link TL-SG108PE
 
+**Details**
+
+.. list-table::
+
+   * - Firmware Version
+     - 1.0.0 Build 20200415 Rel.54962
+   * - Hardware Version
+     - TL-SG108PE 3.0
+
 Above switch can be control from Python code. It implements methods to manage main switch settings.
 Methods are divided in sections:
 
@@ -125,6 +134,7 @@ Before running script install library. Next set environment variables in console
     system = switch_manager.control('system')
     info = system.system_info()
     print(info)
+    switch_manager.disconnect()
 
 
 More examples can be found in documentation :wink:.

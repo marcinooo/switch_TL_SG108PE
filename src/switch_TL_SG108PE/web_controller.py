@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException
 
 from .exceptions import LoginException, LogoutException, TpLinkSwitchException
 from .utils import Frame
@@ -31,9 +31,11 @@ class WebController:
 
         :return: None
         """
-        self.webdriver.get(f'http://{self.host}')
         try:
+            self.webdriver.get(f'http://{self.host}')
             self.wait_until_element_is_present(By.ID, 'logon')
+        except WebDriverException:
+            raise LoginException(f'Couldn\'t connect to {self.host}.') from None
         except TpLinkSwitchException:
             self.logout()
         self.wait_until_element_is_present(By.ID, 'username', exception=LoginException)

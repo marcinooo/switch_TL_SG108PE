@@ -14,3 +14,4 @@ switch_manager.connect(os.environ['ADMIN_IP'],
 system = switch_manager.control('system')
 info = system.system_info()
 print(info)
+switch_manager.disconnect()

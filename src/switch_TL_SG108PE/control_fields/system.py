@@ -117,6 +117,7 @@ class SystemControlField(ControlField):
     def set_ip(self, ip_address: str, subnet_mask: str, default_gateway: str) -> None:
         """
         Sets switch host, netmask, gateway. It works only if dhcp configuration is disabled.
+
         :param ip_address: switch host
         :param subnet_mask: mask dedicated for host
         :param default_gateway: gateway for switch network
