@@ -25,6 +25,16 @@ What can I say? This is a python library to control the tp-link TL-SG108PE switc
 .. image:: images/switch_tp_link_TL_SG108PE.jpg
     :alt: tp-link TL-SG108PE
 
+
+**Details**
+
+.. list-table::
+
+   * - Firmware Version
+     - 1.0.0 Build 20200415 Rel.54962
+   * - Hardware Version
+     - TL-SG108PE 3.0
+
 We install the library on our computer and control the switch
 which is in the same network.
 
@@ -42,6 +52,7 @@ which is in the same network.
 
    installation
    usage
+   examples
    license
 
 .. toctree::

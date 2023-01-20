@@ -16,6 +16,7 @@ class QoSControlField(ControlField):
 
     _MENU_SECTION = 'QoS'
 
+    @ControlField.login_required
     def qos_mode(self) -> str:
         """
         Returns enabled QoS mode.
@@ -34,6 +35,7 @@ class QoSControlField(ControlField):
                 return td_element.text.strip()
         raise QoSModeException('Cannot get QoS mode.')
 
+    @ControlField.login_required
     def set_port_base_qos_mode(self) -> None:
         """
         Sets Port Based QoS mode.
@@ -50,6 +52,7 @@ class QoSControlField(ControlField):
         if alert_info != 'Operation successful.':
             raise QoSModeException(alert_info)
 
+    @ControlField.login_required
     def set_802_1p_based_qos_mode(self) -> None:
         """
         Sets 802.1P Based QoS mode.
@@ -66,6 +69,7 @@ class QoSControlField(ControlField):
         if alert_info != 'Operation successful.':
             raise QoSModeException(alert_info)
 
+    @ControlField.login_required
     def set_dscp_802_1p_based_qos_mode(self) -> None:
         """
         Sets DSCP/802.1P Based QoS mode.
@@ -82,6 +86,7 @@ class QoSControlField(ControlField):
         if alert_info != 'Operation successful.':
             raise QoSModeException(alert_info)
 
+    @ControlField.login_required
     def priority_queue_port_settings(self) -> Dict[str, str]:
         """
         Return settings of port priorities in Port Base QoS mode.
@@ -101,6 +106,7 @@ class QoSControlField(ControlField):
             settings[tds[i].text] = tds[i+1].text
         return settings
 
+    @ControlField.login_required
     def set_priority_queue_in_port_based_qos_mode(self, port: int, priority_queue: PriorityQueue) -> None:
         """
         Set given priority for passed port.

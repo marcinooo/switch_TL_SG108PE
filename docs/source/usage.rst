@@ -39,7 +39,7 @@ In a similar way, we can control sections:
 .. role:: python(code)
    :language: python
 
-* system:
+* :meth:`system <switch_TL_SG108PE.control_fields.system.SystemControlField>`:
     * :python:`system_info() -> Dict[str, str]`
     * :python:`set_device_description(description: str) -> None`
     * :python:`ip_settings() -> Dict[str, str]`
@@ -50,7 +50,7 @@ In a similar way, we can control sections:
     * :python:`led_off() -> None`
     * :python:`user_account() -> Dict[str, str]`
     * :python:`set_user_account_details(username: str, current_password: str, new_password: str, confirm_password: str) -> None`
-* switching:
+* :meth:`switching <switch_TL_SG108PE.control_fields.switching.SwitchingControlField>`:
     * :python:`ports_settings() -> Dict[str, Dict[str, str]]`
     * :python:`set_port_settings(port: int, status: STATUS, speed: SPEED, flow_control: FLOW_CONTROL) -> None`
     * :python:`igmp_snooping() -> Dict[str, str]`
@@ -61,7 +61,7 @@ In a similar way, we can control sections:
     * :python:`lag_settings() -> Dict[str, str]`
     * :python:`set_lag_ports(lag_id: int, ports: List[int]) -> None`
     * :python:`unset_lag_ports(lag_id: int) -> None`
-* monitoring:
+* :meth:`monitoring <switch_TL_SG108PE.control_fields.monitoring.MonitoringControlField>`:
     * :python:`port_statistics(refresh: bool = True) -> Dict[str, Dict[str, str]]`
     * :python:`refresh_port_statistics() -> None`
     * :python:`mirrored_ports() -> Dict[str, Dict[str, str]]`
@@ -71,7 +71,7 @@ In a similar way, we can control sections:
     * :python:`loop_prevention() -> Dict[str, str]`
     * :python:`enable_loop_prevention() -> None`
     * :python:`disable_loop_prevention() -> None`
-* VLAN:
+* :meth:`vlan <switch_TL_SG108PE.control_fields.vlan.VLANControlField>`:
     * :python:`mtu_vlan_configuration() -> Dict[str, str]`
     * :python:`enable_mtu_vlan_configuration() -> None`
     * :python:`disable_mtu_vlan_configuration() -> None`
@@ -86,7 +86,7 @@ In a similar way, we can control sections:
     * :python:`disable_ieee_802_1q_vlan_configuration() -> None`
     * :python:`add_ieee_802_1q_vlan(vlan_id: int, ports: List[IEEE8021QPort], vlan_name: str = '') -> None`
     * :python:`remove_ieee_802_1q_vlan(vlan_id: int) -> None`
-* QoS:
+* :meth:`qos <switch_TL_SG108PE.control_fields.qos.QoSControlField>`:
    * :python:`qos_mode(self) -> str`
    * :python:`set_port_base_qos_mode(self) -> None`
    * :python:`set_802_1p_based_qos_mode(self) -> None`
